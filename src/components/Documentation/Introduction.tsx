@@ -50,7 +50,7 @@ export const Introduction = () => {
 
         <div className='flex item-center justify-between'>
           <h3 className=' text-2xl mt-4 font-semibold mb-6 text-black'>
-            Pacakge Versions
+            Phiên Bản Gói
           </h3>
           <button onClick={() => setDocNavbarOpen(true)} className='p-0'>
             {' '}
@@ -82,16 +82,13 @@ export const Introduction = () => {
         </div>
         <div className='mt-5'>
           <p className='text-base font-medium text-muted text-opacity-60'>
-            Paidin Tailwind NextJs Template is built with Tailwindcss and
-            Nextjs.
+            Mẫu Định Giá Xe Tailwind NextJs được xây dựng với Tailwindcss và Nextjs.
           </p>
           <p className='text-base font-medium text-muted text-opacity-60'>
-            These theme is ready to use and you can totally customize as per
-            your requirement.
+            Chủ đề này sẵn sàng sử dụng và bạn có thể tùy chỉnh hoàn toàn theo yêu cầu của mình.
           </p>
           <p className='text-base font-medium text-muted text-opacity-60'>
-            For Customize, You should have knowledge of NextJs, ReactJs,
-            Tailwind and JSX to be able to modify these template.
+            Để tùy chỉnh, bạn nên có kiến thức về NextJs, ReactJs, Tailwind và JSX để có thể sửa đổi mẫu này.
           </p>
         </div>
       </div>

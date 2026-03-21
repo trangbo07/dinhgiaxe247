@@ -1,53 +1,35 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-// import Logo from "../Header/Logo";
 import { Icon } from '@iconify/react/dist/iconify.js'
+import { useEffect, useState } from 'react'
+import { footerlLinksData } from '@/types/footerlinks'
+import { socialLinksData } from '@/types/sociallinks'
 
-interface links {
-  link: string
-}
+const Footer = () => {
+  const [footerLinks, setFooterLinks] = useState<footerlLinksData[]>([])
+  const [socialLinks, setSocialLinks] = useState<socialLinksData[]>([])
 
-interface socialLinks {
-  imgSrc: string
-  link: string
-  width: number
-}
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/data')
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        setFooterLinks(data.FooterLinks)
+        setSocialLinks(data.SocialLinks)
+      } catch (error) {
+        console.error('Error fetching services:', error)
+      }
+    }
+    fetchData()
+  }, [])
 
-const socialLinks: socialLinks[] = [
-  {
-    imgSrc: 'fa-brands:facebook-f',
-    link: 'www.facebook.com',
-    width: 10,
-  },
-  {
-    imgSrc: 'fa6-brands:instagram',
-    link: 'www.instagram.com',
-    width: 14,
-  },
-  {
-    imgSrc: 'fa6-brands:twitter',
-    link: 'www.twitter.com',
-    width: 14,
-  },
-]
-
-const links: links[] = [
-  {
-    link: 'Product',
-  },
-  {
-    link: 'Pricing',
-  },
-  {
-    link: 'Features',
-  },
-]
-
-const footer = () => {
   return (
     <div className='bg-midnight_text'>
-      <div className='mx-auto max-w-2xl pt-4 px-4 sm:px-6 lg:max-w-7xl lg:px-8'>
-        <div className='my-12 grid grid-cols-1 gap-y-10 sm:grid-cols-6 lg:grid-cols-12'>
+      <div className='container p-4'>
+        <div className='my-6 grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-y-5'>
           {/* COLUMN-1 */}
           <div className='sm:col-span-6 lg:col-span-3'>
             <div className='flex shrink-0 items-center border-right'>
@@ -61,12 +43,12 @@ const footer = () => {
           </div>
           <div className='sm:col-span-6 lg:col-span-5 flex items-center'>
             <div className='flex gap-4'>
-              {links.map((items, i) => (
+              {footerLinks.map((items, i) => (
                 <div key={i}>
                   <Link
-                    href='/'
-                    className='text-lg font-normal text-white flex items-center justify-center'>
-                    {items.link}
+                    href={`${items.href}`}
+                    className='text-lg font-normal text-white/60 flex items-center justify-center hover:text-white hover:underline'>
+                    {items.label}
                   </Link>
                 </div>
               ))}
@@ -84,25 +66,25 @@ const footer = () => {
             </div>
           </div>
         </div>
-        <div className='pt-12 pb-10 lg:flex items-center justify-between border-t border-t-white/30'>
-          <h4 className='text-lg text-center md:text-start font-normal text-white opacity-60'>
-            @2025.All rights reserved by{' '}
+        <div className='pt-4 flex flex-col sm:flex-row gap-4 items-center justify-between border-t border-t-white/30'>
+          <h4 className='text-lg text-center md:text-start font-normal text-white/60'>
+            @2025. Tất cả quyền được bảo lưu bởi{' '}
             <Link
               href='https://getnextjstemplates.com/'
-              className='hover:text-primary'>
-              GetNextJs Templates
+              className='hover:text-white'>
+              ValuCar - Định Giá Xe Ô Tô Thông Minh
             </Link>
           </h4>
-          <div className='flex gap-5 mt-6 md:mt-0 justify-center md:justify-start'>
-            <h4 className='opacity-60 text-lg font-normal text-white'>
+          <div className='flex gap-5  justify-center items-center md:justify-start'>
+            <h4 className='text-lg font-normal text-white/60 hover:text-white'>
               <Link href='/' target='_blank'>
-                Privacy policy
+                Chính sách Bảo mật
               </Link>
             </h4>
             <div className='h-5 bg-white opacity-60 w-0.5'></div>
-            <h4 className='opacity-60 text-lg font-normal text-white'>
+            <h4 className='text-lg font-normal text-white/60 hover:text-white'>
               <Link href='/' target='_blank'>
-                Terms & conditions
+                Điều khoản và Điều kiện
               </Link>
             </h4>
           </div>
@@ -112,4 +94,4 @@ const footer = () => {
   )
 }
 
-export default footer
+export default Footer

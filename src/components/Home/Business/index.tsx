@@ -6,29 +6,28 @@ const Business = () => {
   return (
     <section className='py-10'>
       <div className='container'>
-        <div className='grid grid-cols-1 lg:grid-cols-12 space-x-1'>
-          <div className='col-span-6 flex flex-col justify-center'>
-            <h2 className='text-midnight_text text-4xl sm:text-5xl font-semibold text-center lg:text-start leading-140!'>
-              Make better business decisions with Paidin.
+        <div className='grid grid-cols-1 lg:grid-cols-12 content-center justify-items-center'>
+          <div className='lg:col-span-6 flex flex-col gap-5 justify-center'>
+            <h2 className='text-midnight_text text-center lg:text-start'>
+              Đưa ra quyết định kinh doanh tốt hơn với hệ thống định giá xe.
             </h2>
-            <h3 className='text-black/75 text-lg font-normal text-center lg:text-start pt-3 leading-180!'>
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-              accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-              quae ab.
-            </h3>
+            <p className='text-black/75 text-lg font-normal text-center lg:text-start sm:leading-140 max-w-2xl lg:max-w-lg mx-auto lg:mx-0'>
+              Với định giá minh bạch và bản địa hóa theo khu vực Việt Nam, ValuCar cung cấp các công cụ để đưa ra quyết định kinh doanh nhanh hơn, dựa trên dữ liệu thực tế — không cần đoán mò.
+            </p>
             <Link
               href={'/'}
-              className='text-primary hover:text-blue-700 text-lg font-medium flex items-center gap-2 pt-4 mx-auto lg:mx-0 w-fit'>
-              Learn more
+              className='text-primary hover:text-blue-700 text-lg font-medium flex items-center gap-2 mx-auto lg:mx-0 w-fit'>
+              Tìm hiểu thêm
               <Icon icon='tabler:arrow-right' className='text-2xl' />
             </Link>
           </div>
-          <div className='col-span-6 flex justify-center mt-10 lg:mt-0'>
+          <div className='lg:col-span-6 flex sm:justify-center justify-start mt-10 lg:mt-0'>
             <Image
               src='/images/business/business.png'
               alt='business'
-              width={1000}
+              width={636}
               height={805}
+              className='w-full'
             />
           </div>
         </div>

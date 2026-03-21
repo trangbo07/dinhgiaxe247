@@ -1,14 +1,14 @@
 import React from 'react'
-import Hero from '@/app/components/Home/Hero'
-import People from '@/app/components/Home/People'
-import Features from '@/app/components/Home/Features'
-import ValuationProcess from '@/app/components/Home/ValuationProcess'
-import ValuationForm from '@/app/components/Home/ValuationForm'
-import Business from '@/app/components/Home/Business'
-import Payment from '@/app/components/Home/Payment'
-import Pricing from '@/app/components/Home/Pricing'
+import Hero from '@/components/Home/Hero'
+import People from '@/components/Home/People'
+import Features from '@/components/Home/Features'
+import ValuationProcess from '@/components/Home/ValuationProcess'
+import ValuationForm from '@/components/Home/ValuationForm'
+import Business from '@/components/Home/Business'
+import Payment from '@/components/Home/Payment'
+import Pricing from '@/components/Home/Pricing'
 import { Metadata } from 'next'
-import ContactForm from './components/Contact/Form'
+import ContactForm from '@/components/Contact/Form'
 export const metadata: Metadata = {
   title: 'ValuCar - Định Giá Xe Ô Tô Thông Minh',
 }
@@ -17,14 +17,12 @@ export default function Home() {
   return (
     <main>
       <Hero />
-      <People />
+      <ValuationForm />
       <Features />
       <ValuationProcess />
-      <ValuationForm />
-      <Business />
-      <Payment />
       <Pricing />
       <ContactForm />
+      <People />
     </main>
   )
 }

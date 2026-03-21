@@ -1,76 +1,72 @@
 'use client'
-import { SetStateAction, useState } from 'react'
+import { SetStateAction, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Icon } from '@iconify/react/dist/iconify.js'
-
-const names = [
-  {
-    heading: 'Lite',
-    price: {
-      monthly: 19,
-      yearly: 190,
-    },
-    subscriber: 0.5,
-    button: 'Start free trial',
-    option: [
-      'Basic invoice generation',
-      'Downloadable PDF invoice',
-      'Unlimited transactions',
-      'Emails for all the updates',
-    ],
-    category: ['monthly', 'yearly'],
-    imgSrc: '/images/pricing/starone.svg',
-  },
-  {
-    heading: 'Basic',
-    price: {
-      monthly: 29,
-      yearly: 290,
-    },
-    subscriber: 0.5,
-    button: 'Start free trial',
-    option: [
-      'All Lite features',
-      'Custom invoice templates',
-      'Tax calculation support',
-      'Automatic invoice reminders',
-    ],
-    category: ['monthly', 'yearly'],
-    imgSrc: '/images/pricing/startwo.svg',
-  },
-  {
-    heading: 'Plus',
-    price: {
-      monthly: 59,
-      yearly: 590,
-    },
-    subscriber: 0.5,
-    button: 'Start free trial',
-    option: [
-      'All Basic features',
-      'Multi-currency support',
-      'Invoice payment tracking',
-      'Priority customer support',
-    ],
-    category: ['monthly', 'yearly'],
-    imgSrc: '/images/pricing/starthree.svg',
-  },
-]
+import { plansData } from '@/types/plans'
+import PlansSkeleton from '@/components/Skeleton/Plans'
+import { useWallet } from '@/app/Providers'
+import { useSession } from 'next-auth/react'
+import toast from 'react-hot-toast'
 
 const Pricing = () => {
-  const [selectedCategory, setSelectedCategory] = useState<
-    'monthly' | 'yearly'
-  >('yearly')
+  const [plans, setPlans] = useState<plansData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [buyingPlan, setBuyingPlan] = useState<string | null>(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const { isPro, buyPro } = useWallet()
+  const { data: session } = useSession()
 
-  const handleCategoryChange = (
-    category: SetStateAction<'monthly' | 'yearly'>
-  ) => {
+  const handleBuy = (planName: string, planPrice: number) => {
+    if (!session) {
+      toast.error('Vui lòng đăng nhập để mua gói!')
+      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
+        (window as any).openSignInModal()
+      }
+      return
+    }
+    if (planName.toLowerCase().includes('pro')) {
+      if (isPro) {
+        toast.error('Bạn đã sở hữu gói Pro rồi!')
+        return
+      }
+      
+      setBuyingPlan(planName)
+      setTimeout(() => {
+        const isBought = buyPro(planPrice)
+        setBuyingPlan(null)
+        if (isBought) {
+          setShowSuccessModal(true)
+        }
+      }, 2500)
+      
+    } else {
+      toast.error('Gói này hiện chưa khả dụng. Hãy thử gói Pro hoặc Doanh Nghiệp.')
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/data')
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        setPlans(data.PlansData)
+      } catch (error) {
+        console.error('Error fetching services:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const [selectedCategory, setSelectedCategory] = useState<'personal' | 'business'>('personal')
+
+  const handleCategoryChange = (category: SetStateAction<'personal' | 'business'>) => {
     setSelectedCategory(category)
   }
 
-  const filteredData = names.filter((item) =>
-    item.category.includes(selectedCategory)
-  )
+  const filteredPlans = plans.filter((item) => item.category.includes(selectedCategory))
 
   return (
     <section id='pricing' className='bg-header relative py-20'>
@@ -79,103 +75,229 @@ const Pricing = () => {
         alt='upperline-image'
         width={280}
         height={219}
-        className='absolute top-[160px] left-[90px] hidden sm:block'
+        className='absolute top-[160px] left-[90px] hidden sm:block opacity-5'
       />
       <Image
         src='/images/pricing/lowerline.png'
         alt='lowerline-image'
         width={180}
         height={100}
-        className='absolute bottom-[0px] right-[90px]'
+        className='absolute bottom-[0px] right-[90px] opacity-5'
       />
       <div className='container px-4'>
-        <h3 className='text-center text-4xl sm:text-65xl font-black'>
-          Our Pricing Plan.
-        </h3>
+        <div className='max-w-3xl mx-auto text-center mb-16'>
+          <h2 className='text-4xl sm:text-5xl font-black mb-6 bg-gradient-to-r from-midnight_text to-midnight_text bg-clip-text'>
+            Gói Giá Của Chúng Tôi
+          </h2>
 
-        <p className='text-lg font-normal text-center text-black/60 pt-5'>
-          Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-          accusantium
-          <br /> doloremque laudantium, totam rem aperiam, eaque ipsa quae ab.
-        </p>
+          <p className='text-lg text-gray-600 leading-relaxed'>
+            Chọn gói phù hợp với nhu cầu của bạn. Minh bạch, không có phí ẩn, và có thể nâng cấp bất kỳ lúc nào.
+          </p>
+        </div>
 
-        {/* Yearly/Monthly Toggle Buttons */}
-        <div className='mt-6 relative'>
-          <div className='flex justify-center'>
-            <div className='bg-deepSlate flex py-1 px-1 rounded-full'>
-              <h3
-                className={`text-xl font-medium cursor-pointer ${
-                  selectedCategory === 'yearly'
-                    ? 'text-primary bg-white rounded-full py-2 px-4 sm:py-4 sm:px-16'
-                    : 'text-white py-2 px-4 sm:py-4 sm:px-16'
-                }`}
-                onClick={() => handleCategoryChange('yearly')}>
-                Yearly
-              </h3>
-              <h3
-                className={`text-xl font-medium cursor-pointer ${
-                  selectedCategory === 'monthly'
-                    ? 'text-primary bg-white rounded-full py-2 px-4 sm:py-4 sm:px-16'
-                    : 'text-white py-2 px-4 sm:py-4 sm:px-16'
-                }`}
-                onClick={() => handleCategoryChange('monthly')}>
-                Monthly
-              </h3>
-            </div>
+        {/* Toggle Buttons */}
+        <div className='flex justify-center mb-12'>
+          <div className='inline-flex gap-1 p-1 bg-gray-100 rounded-full shadow-md border border-gray-200/50'>
+            <button
+              className={`px-8 py-3 rounded-full font-bold transition-all duration-300 ${
+                selectedCategory === 'personal'
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              onClick={() => handleCategoryChange('personal')}>
+              Cá Nhân
+            </button>
+            <button
+              className={`px-8 py-3 rounded-full font-bold transition-all duration-300 ${
+                selectedCategory === 'business'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              onClick={() => handleCategoryChange('business')}>
+              Doanh Nghiệp
+            </button>
           </div>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-16 mx-5 gap-6'>
-          {filteredData.map((item, index) => (
-            <div
-              className='pt-10 pb-28 pl-10 pr-10 bg-white rounded-3xl bxshd relative cursor-pointer hover:bg-primary group'
-              key={index}>
-              <Image
-                src={item.imgSrc}
-                alt='star-image'
-                width={154}
-                height={154}
-                className='absolute bottom-0 right-0'
-              />
-              <h4 className='text-4xl sm:text-5xl font-semibold mb-8 text-midnight_text group-hover:text-white'>
-                {item.heading}
-              </h4>
-              <button className='text-xl font-medium text-white w-full bg-primary hover:text-white group-hover:bg-deepSlate group-hover:border-deepSlate border-2 border-primary rounded-full py-4 px-12 mb-8'>
-                {item.button}
-              </button>
-              <h2 className='text-4xl sm:text-5xl font-semibold text-midnight_text mb-3 group-hover:text-white'>
-                $
-                {selectedCategory === 'monthly'
-                  ? item.price.monthly
-                  : item.price.yearly}
-                /<span className='text-lightgrey'>mo</span>
-              </h2>
-              <p className='text-lg font-normal text-black group-hover:text-white'>
-                ${item.subscriber}
-                <span>/ Subscriber</span>
-              </p>
-              <p className='text-lg font-normal text-black/40 mb-6 group-hover:text-white'>
-                (per subscriber per month)
-              </p>
+        {/* Pricing Grid */}
+        <div className='mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-7xl mx-auto'>
+          {loading
+            ? Array.from({ length: 3 }).map((_, i) => <PlansSkeleton key={i} />)
+            : filteredPlans.map((item, index) => {
+                const isPremium = item.heading === 'Gói Pro'
+                const isBusiness = selectedCategory === 'business'
+                const isPopular = isBusiness && index === 1
 
-              {/* Plan Features with icons */}
-              <div className='mt-6'>
-                {item.option.map((feature, idx) => (
-                  <div key={idx} className='flex gap-4 pt-4'>
-                    <Icon
-                      icon='tabler:circle-check-filled'
-                      className='text-2xl text-emerald-400'
-                    />
-                    <p className='text-lg font-medium text-black/60 group-hover:text-white/60'>
-                      {feature}
-                    </p>
+                return (
+                  <div
+                    className={`relative group transition-all duration-300 ${
+                      isPremium || isPopular ? 'md:scale-105 lg:scale-105' : ''
+                    }`}
+                    key={index}>
+                    {/* Card Container */}
+                    <div
+                      className={`relative h-full rounded-3xl overflow-hidden transition-all duration-300 ${
+                        isPremium || isPopular
+                          ? 'bg-gradient-to-br from-slate-50 to-white border-2 border-transparent shadow-2xl'
+                          : 'bg-white shadow-xl hover:shadow-2xl'
+                      }`}
+                     >
+                      {/* Badge */}
+                      {(isPremium || isPopular) && (
+                        <div className={`absolute top-0 left-0 right-0 py-3 px-4 text-center font-bold text-white text-sm tracking-wide ${
+                          isPremium
+                            ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 shadow-lg'
+                            : 'bg-gradient-to-r from-blue-500 via-purple-500 to-purple-600 shadow-lg'
+                        }`}>
+                          {isPremium ? 'YÊU THÍCH NHẤT' : 'PHỔ BIẾN NHẤT'}
+                        </div>
+                      )}
+
+                      {/* Background decoration */}
+                      <div className='absolute -right-20 -top-20 w-40 h-40 bg-gradient-to-br from-primary/5 to-primary/10 rounded-full blur-3xl opacity-50'></div>
+                      
+                      {/* Content */}
+                      <div className={`relative p-8 pt-10 ${(isPremium || isPopular) ? 'pt-16' : ''}`}>
+                        {/* Plan Name */}
+                        <h3 className='text-2xl font-bold text-midnight_text mb-2 group-hover:text-primary transition-colors'>
+                          {item.heading}
+                        </h3>
+                        
+                        {/* Divider */}
+                        <div className='h-1 w-12 bg-gradient-to-r from-primary to-primary/50 rounded-full mb-6'></div>
+
+                        {/* Price */}
+                        <div className='mb-8'>
+                          <div className='flex items-baseline gap-2'>
+                            <span className='text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent'>
+                              {item.price.monthly.toLocaleString('vi-VN')}
+                            </span>
+                            <span className='text-2xl font-semibold text-gray-600'>đ</span>
+                          </div>
+                          <p className='text-gray-500 text-sm mt-2 font-medium'>
+                            {item.heading === 'Gối Tháng'
+                              ? 'Mỗi tháng'
+                              : item.heading === 'Gói Quý'
+                                ? 'Mỗi quý'
+                                : item.heading === 'Gói Năm'
+                                  ? 'Mỗi năm'
+                                  : ''}
+                          </p>
+                        </div>
+
+                        {/* CTA Button */}
+                        <button
+                          onClick={() => handleBuy(item.heading, item.price.monthly)}
+                          disabled={buyingPlan === item.heading}
+                          className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex justify-center items-center gap-2 mb-8 ${
+                            (isPremium && selectedCategory === 'personal') || isBusiness
+                              ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg hover:shadow-2xl hover:scale-105 hover:from-yellow-500 hover:to-yellow-700'
+                              : 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white hover:scale-105'
+                          }`}>
+                          {buyingPlan === item.heading ? (
+                            <>
+                              <Icon icon='tabler:loader' className='animate-spin text-xl' /> Đang xử lý...
+                            </>
+                          ) : isPremium && selectedCategory === 'personal' && isPro ? (
+                            <>
+                              <Icon icon='tabler:check' className='text-xl' /> Đã sở hữu
+                            </>
+                          ) : (
+                            item.button
+                          )}
+                        </button>
+
+                        {/* Features List */}
+                        <div className='space-y-4'>
+                          <p className='text-xs font-bold text-gray-400 uppercase tracking-wider'>Tính năng bao gồm:</p>
+                          {item.option.map((feature, idx) => (
+                            <div key={idx} className='flex items-start gap-3'>
+                              <div className='flex-shrink-0 mt-1'>
+                                <Icon
+                                  icon='tabler:check-circle-filled'
+                                  className={`text-lg ${
+                                    isBusiness ? 'text-blue-500' : 'text-emerald-500'
+                                  }`}
+                                />
+                              </div>
+                              <p className='text-gray-700 font-medium text-sm leading-relaxed'>
+                                {feature}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                )
+              })}
         </div>
       </div>
+
+      {/* Success Modal Popup */}
+      {showSuccessModal && (
+        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4'>
+          <div className='bg-white rounded-3xl max-w-md w-full p-10 relative shadow-2xl flex flex-col items-center text-center transform transition-all animate-slide-up border border-yellow-100'>
+            
+            {/* Success Icon */}
+            <div className='absolute -top-16 z-10'>
+              <div className='w-32 h-32 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl shadow-yellow-500/50 border-4 border-white animate-bounce-soft'>
+                <Icon icon='tabler:check' className='text-6xl text-white font-bold' />
+              </div>
+            </div>
+
+            <div className='pt-20'>
+              <h3 className='text-3xl font-black text-midnight_text mb-4'>
+                🎉 Chúc Mừng!
+              </h3>
+              
+              <p className='text-gray-600 text-base mb-8 leading-relaxed'>
+                Bạn đã sở hữu thành công gói{' '}
+                <span className='text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 font-bold'>
+                  Gói Pro
+                </span>{' '}
+                của ValuCar. Giờ đây bạn có thể sử dụng tất cả tính năng ưu việt nhất!
+              </p>
+              
+              <div className='space-y-3'>
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                  className='w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex justify-center items-center gap-2'>
+                  Bắt Đầu Ngay
+                  <Icon icon='tabler:arrow-right' className='text-xl' />
+                </button>
+              </div>
+            </div>
+
+            <style>{`
+              @keyframes bounce-soft {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-12px) scale(1.02); }
+              }
+              .animate-bounce-soft {
+                animation: bounce-soft 2s ease-in-out infinite;
+              }
+              @keyframes slide-up {
+                from { 
+                  opacity: 0; 
+                  transform: translateY(30px) scale(0.95); 
+                }
+                to { 
+                  opacity: 1; 
+                  transform: translateY(0) scale(1); 
+                }
+              }
+              .animate-slide-up {
+                animation: slide-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
+
     </section>
   )
 }

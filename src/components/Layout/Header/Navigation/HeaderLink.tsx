@@ -1,10 +1,10 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { HeaderItem } from '../../../../types/menu'
 import { usePathname } from 'next/navigation'
+import { headerItem } from '@/types/menu'
 
-const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
+const HeaderLink: React.FC<{ item: headerItem }> = ({ item }) => {
   const [submenuOpen, setSubmenuOpen] = useState(false)
   const path = usePathname()
   const handleMouseEnter = () => {

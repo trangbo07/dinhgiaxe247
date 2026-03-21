@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 
-import { headerItem } from '@/app/types/menu'
-import { featureData } from '@/app/types/featuredata'
-import { socialLinksData } from '@/app/types/sociallinks'
-import { plansData } from '@/app/types/plans'
-import { footerlLinksData } from '@/app/types/footerlinks'
+import { headerItem } from '@/types/menu'
+import { featureData } from '@/types/featuredata'
+import { socialLinksData } from '@/types/sociallinks'
+import { plansData } from '@/types/plans'
+import { footerlLinksData } from '@/types/footerlinks'
 
 const HeaderData: headerItem[] = [
   { label: 'Sản Phẩm', href: '/#product' },
@@ -37,54 +37,108 @@ const FeatureData: featureData[] = [
 
 const PlansData: plansData[] = [
   {
-    heading: 'Cơ Bản',
+    heading: 'Gói Free',
     price: {
-      monthly: 19,
-      yearly: 190,
+      monthly: 0,
+      yearly: 0,
     },
-    subscriber: 0.5,
-    button: 'Mua Ngay',
+    subscriber: 0,
+    button: 'Bắt Đầu Miễn Phí',
     option: [
-      'Định giá xe cơ bản',
-      'Báo cáo PDF có thể tải xuống',
-      'Giao dịch không giới hạn',
-      'Email cho tất cả cập nhật',
+      'Không giới hạn lượt định giá',
+      'Cung cấp khoảng giá tiêu chuẩn',
+      'Kết quả sơ bộ',
     ],
-    category: ['monthly', 'yearly'],
+    category: ['personal'],
     imgSrc: '/images/pricing/starone.svg',
   },
   {
-    heading: 'Tiêu Chuẩn',
+    heading: 'Gói Basic',
     price: {
-      monthly: 29,
-      yearly: 290,
+      monthly: 99000,
+      yearly: 99000,
     },
     subscriber: 0.5,
     button: 'Mua Ngay',
     option: [
-      'Tất cả tính năng Cơ Bản',
-      'Mẫu báo cáo tùy chỉnh',
-      'Hỗ trợ tính toán thuế',
-      'Nhắc nhở định giá tự động',
+      'Không giới hạn lượt định giá',
+      'Truy cập báo cáo chi tiết',
+      'Phân tích tình trạng xe',
+      'Phân tích thị trường',
     ],
-    category: ['monthly', 'yearly'],
+    category: ['personal'],
     imgSrc: '/images/pricing/startwo.svg',
   },
   {
-    heading: 'Cao Cấp',
+    heading: 'Gói Pro',
     price: {
-      monthly: 59,
-      yearly: 590,
+      monthly: 149000,
+      yearly: 149000,
     },
-    subscriber: 0.5,
+    subscriber: 1,
     button: 'Mua Ngay',
     option: [
-      'Tất cả tính năng Tiêu Chuẩn',
-      'Hỗ trợ đa tiền tệ',
-      'Theo dõi thanh toán định giá',
-      'Hỗ trợ khách hàng ưu tiên',
+      'Không giới hạn lượt định giá',
+      'Phân tích chuyên sâu',
+      'Check phạt nguội',
+      'Tư vấn 1:1 24/7',
+      'Truy cập toàn bộ nội dung cao cấp',
     ],
-    category: ['monthly', 'yearly'],
+    category: ['personal'],
+    imgSrc: '/images/pricing/starthree.svg',
+  },
+  {
+    heading: 'Gói Tháng',
+    price: {
+      monthly: 129000,
+      yearly: 129000,
+    },
+    subscriber: 1,
+    button: 'Mua Ngay',
+    option: [
+      'Không giới hạn lượt định giá',
+      'Phân tích chuyên sâu',
+      'Check phạt nguội',
+      'Tư vấn 1:1 24/7',
+      'Truy cập toàn bộ nội dung cao cấp',
+    ],
+    category: ['business'],
+    imgSrc: '/images/pricing/starthree.svg',
+  },
+  {
+    heading: 'Gói Quý',
+    price: {
+      monthly: 350000,
+      yearly: 350000,
+    },
+    subscriber: 1,
+    button: 'Mua Ngay',
+    option: [
+      'Không giới hạn lượt định giá',
+      'Phân tích chuyên sâu',
+      'Check phạt nguội',
+      'Tư vấn 1:1 24/7',
+      'Truy cập toàn bộ nội dung cao cấp',
+    ],
+    category: ['business'],
+    imgSrc: '/images/pricing/starthree.svg',
+  },
+  {
+    heading: 'Gói Năm',
+    price: {
+      monthly: 1499000,
+      yearly: 1499000,
+    },
+    subscriber: 1,
+    button: 'Mua Ngay',
+    option: [
+      'Không giới hạn lượt định giá',
+      'Phân tích chuyên sâu',
+      'Check phạt nguội',
+      'Tư vấn 1:1 24/7',
+      'Truy cập toàn bộ nội dung cao cấp',
+    ],
+    category: ['business'],
     imgSrc: '/images/pricing/starthree.svg',
   },
 ]

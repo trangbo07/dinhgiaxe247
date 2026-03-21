@@ -1,47 +1,61 @@
 import Image from 'next/image'
+import Link from 'next/link'
+import { Icon } from '@iconify/react/dist/iconify.js'
 
 const Banner = () => {
   return (
-    <section className='bg-header pt-52 pb-10'>
-      <div className='container px-4'>
-        <div className='grid grid-cols-1 lg:grid-cols-12'>
-          <div className='col-span-7 flex flex-col justify-evenly relative'>
+    <section className='bg-header pt-28 pb-32 lg:pb-40 overflow-hidden relative'>
+      <div className='container'>
+        <div className='grid gap-5 grid-cols-1 lg:grid-cols-12 content-center'>
+          <div className='lg:col-span-7 flex flex-col justify-center relative'>
             <Image
               src='/images/hero/star.svg'
               alt='star-image'
               width={95}
               height={97}
-              className='absolute top-[-74px] right-[51px]'
+              className='absolute top-[-74px] right-[51px] opacity-10'
             />
             <Image
               src='/images/hero/lineone.svg'
               alt='line-image'
               width={190}
               height={148}
-              className='absolute top-[-74px] right-[51px]'
+              className='absolute top-[-74px] right-[51px] opacity-5'
             />
-            <h1 className='text-midnight_text text-4xl md:text-86 text-center lg:text-start font-semibold pt-5'>
-              Put an end to unpaid invoices.
-            </h1>
-            <h3 className='text-black opacity-75 text-lg font-normal text-center lg:text-start pt-8'>
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-              accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-              quae ab illo inventore veritatis et quasi architecto beatae vitae
-              dicta sunt explicabo.
-            </h3>
-            <div className='pt-8 mx-auto lg:mx-0'>
-              <button className='text-white text-xl font-medium py-6 px-12 rounded-full transition duration-300 border border-primary bg-primary hover:bg-transparent hover:text-primary'>
-                Get started
-              </button>
+            <Image
+              src='/images/hero/linetwo.svg'
+              alt='line-image'
+              width={190}
+              height={148}
+              className='hidden xl:block absolute bottom-[-74px] right-[-38rem] opacity-5'
+            />
+            <div className='flex flex-col gap-5'>
+              <h1 className='text-6xl max-w-2xl leading-16 text-midnight_text text-center lg:text-start mx-auto lg:mx-0 pt-5'>
+                Định Giá Xe Ô Tô Thông Minh.
+              </h1>
+              <p className='text-black/75 text-lg font-normal text-center lg:text-start max-w-lg mx-auto lg:mx-0'>
+                Định giá minh bạch với lý do rõ ràng dựa trên dữ liệu thị trường, và chính xác theo từng khu vực tại Việt Nam. 
+                ValuCar cung cấp khoảng giá tham chiếu với các luận cứ cụ thể, phản ánh biến động thị trường và chênh lệch vùng miền.
+              </p>
+              <div className='mx-auto lg:mx-0'>
+                <Link href={'/#valuation'}>
+                  <button className='bg-gradient-to-r from-primary to-blue-600 shadow-xl shadow-primary/30 text-white text-xl font-bold py-4 px-10 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center gap-2'>
+                    Định Giá Ngay <Icon icon="tabler:arrow-right" className="text-2xl" />
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-          <div className='col-span-5 flex justify-center xl:-mb-32 xl:-mr-32 pt-10 lg:pt-0'>
-            <Image
-              src='/images/hero/banner2.png'
-              alt='nothing'
-              width={1000}
-              height={805}
-            />
+          <div className='mt-10 lg:mt-0 lg:col-span-5'>
+            <div>
+              <Image
+                src='/images/hero/banner4.png'
+                alt='nothing'
+                width={900}
+                height={652}
+                className='w-full'
+              />
+            </div>
           </div>
         </div>
       </div>
