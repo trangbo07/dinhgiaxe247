@@ -42,13 +42,22 @@ export default function ExpertChatWidget(props: {
   price: number | null
   priceLow: number | null
   priceHigh: number | null
+  vehicle?: {
+    brand?: string
+    model?: string
+    year?: string | number
+    color?: string
+    mileage?: string | number
+    version?: string
+  }
 }) {
-  const { enabled, price, priceLow, priceHigh } = props
+  const { enabled, price, priceLow, priceHigh, vehicle } = props
 
   const basePrice = useMemo(() => computeBasePrice(price, priceLow, priceHigh), [price, priceLow, priceHigh])
 
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: id(),
@@ -151,14 +160,34 @@ export default function ExpertChatWidget(props: {
     return 'Bạn mô tả rõ tình huống hơn một chút (ví dụ: ngập mức nào / có ảnh hưởng điện không / đã sửa chữa gì), mình sẽ trả về mức “giá còn lại” ước tính.'
   }
 
-  function onSend(textRaw?: string) {
+  async function onSend(textRaw?: string) {
     const text = (textRaw ?? draft).trim()
-    if (!text) return
+    if (!text || sending) return
     pushUser(text)
     setDraft('')
+    setSending(true)
 
-    const reply = replyFor(text)
-    window.setTimeout(() => pushAssistant(reply), 350)
+    try {
+      const history = messages.slice(-8).map((m) => ({ role: m.role, text: m.text }))
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history, basePrice, priceLow, priceHigh, vehicle }),
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data?.reply) {
+        const fallback = replyFor(text)
+        pushAssistant(fallback)
+      } else {
+        pushAssistant(data.reply)
+      }
+    } catch {
+      const fallback = replyFor(text)
+      pushAssistant(fallback)
+    } finally {
+      setSending(false)
+    }
   }
 
   if (!enabled) return null
@@ -257,15 +286,17 @@ export default function ExpertChatWidget(props: {
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder='Hỏi nhanh: "ngập nước thì còn bao nhiêu?"'
+                    disabled={sending}
                     className='relative w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all font-medium bg-white'
                   />
                 </div>
                 <button
                   type='submit'
+                  disabled={sending}
                   className='px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap'
                 >
                   <Icon icon='tabler:send' className='text-lg' />
-                  <span className='hidden sm:inline'>Gửi</span>
+                  <span className='hidden sm:inline'>{sending ? 'Đang gửi...' : 'Gửi'}</span>
                 </button>
               </form>
 

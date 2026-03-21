@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import data from '../../../../data.json'
@@ -80,6 +80,76 @@ const ValuationForm = () => {
       example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/650727052_122177232728669678_4044222338380675829_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=e06c5d&_nc_ohc=aEqUmOT69woQ7kNvwHvLhTk&_nc_oc=AdlxAcWTIQEVJQ0FoDnfvidGOcYl9Vh8o47y3raNjP5iFh4z8uNuY5aBDazdzsrpkGc&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=MWgWvZEBeqtXJZc-VmrhNw&_nc_ss=8&oh=00_AfxajXoF2QwSBOwZSEuM2PrggT59ZklPqh63u0dlcIjTMQ&oe=69BCB806',
     },
   ]
+
+  const proValuation = useMemo(() => {
+    const plain = explanation
+      .replace(/\r/g, '\n')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(' ')
+
+    const reasons = plain
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 4)
+
+    const parsedMileage = Number((mileage || '').replace(/[^\d]/g, ''))
+    const parsedYear = Number(selectedYear)
+    const now = new Date().getFullYear()
+    const age = Number.isFinite(parsedYear) && parsedYear > 0 ? Math.max(0, now - parsedYear) : null
+    const kmRisk = Number.isFinite(parsedMileage) ? Math.min(100, Math.round((parsedMileage / 150000) * 100)) : 35
+    const ageRisk = age == null ? 35 : Math.min(100, Math.round((age / 15) * 100))
+    const riskScore = Math.round(kmRisk * 0.45 + ageRisk * 0.55)
+    const confidenceScore = Math.max(55, 95 - Math.round(riskScore * 0.35))
+    const liquidityScore = Math.max(40, 92 - Math.round((riskScore + kmRisk) * 0.3))
+
+    const low = priceLow ?? (price != null ? Math.round(price * 0.95) : null)
+    const high = priceHigh ?? (price != null ? Math.round(price * 1.05) : null)
+    const center = price ?? (low != null && high != null ? Math.round((low + high) / 2) : null)
+    const spread = low != null && high != null ? Math.max(0, high - low) : null
+
+    const negotiateFast = center != null ? Math.max(0, Math.round(center * 0.97)) : null
+    const negotiateTarget = center != null ? Math.max(0, Math.round(center * 0.99)) : null
+    const negotiateHold = high != null ? high : center
+    const negotiateAnchor = high != null ? Math.round(high * 1.015) : center
+
+    const mileageBand =
+      !Number.isFinite(parsedMileage) ? 'Chưa có dữ liệu' : parsedMileage < 40000 ? 'Thấp' : parsedMileage < 90000 ? 'Trung bình' : 'Cao'
+    const ageBand = age == null ? 'Chưa xác định' : age <= 3 ? 'Xe còn mới' : age <= 7 ? 'Tầm trung' : 'Đời sâu'
+
+    const premiumHighlights = [
+      `Độ tin cậy dữ liệu: ${confidenceScore}/100`,
+      `Thanh khoản thị trường: ${liquidityScore}/100`,
+      `Nhóm quãng đường: ${mileageBand}`,
+      `Độ tuổi xe: ${ageBand}`,
+    ]
+
+    const actionPlan = [
+      'Dọn khoang máy, vệ sinh nội thất, chụp lại ảnh đủ sáng để tăng cảm nhận xe giữ gìn.',
+      'Công khai lịch sử bảo dưỡng gần nhất và các hạng mục đã thay thế chính hãng.',
+      'Đăng giá neo cao hơn 1-1.5% rồi chốt dần theo phản hồi thị trường 48h đầu.',
+      'Ưu tiên khung giờ đăng tin 19:30-22:00 để tăng tỉ lệ inbox.',
+    ]
+
+    return {
+      reasons,
+      riskScore,
+      confidenceScore,
+      liquidityScore,
+      low,
+      high,
+      center,
+      spread,
+      negotiateFast,
+      negotiateTarget,
+      negotiateHold,
+      negotiateAnchor,
+      premiumHighlights,
+      actionPlan,
+    }
+  }, [explanation, mileage, selectedYear, price, priceLow, priceHigh])
 
   useEffect(() => {
     setBrands(data.brands)
@@ -505,19 +575,97 @@ const ValuationForm = () => {
               {explanation && (
                 <div className='mb-8'>
                   <h3 className='text-lg font-semibold text-primary mb-3'>Lý Do Định Giá</h3>
-                  <div className='bg-blue-50 border-l-4 border-primary p-4 rounded-lg shadow-sm leading-relaxed whitespace-pre-line'>
-                    <span className='block font-semibold text-primary mb-1'>Lý do định giá:</span>
-                    <span className='text-gray-700'>
-                      Xe <b>Toyota Vios 2019</b> màu <b>bạc</b>, số km đã đi <b>65,000 km</b>, có <b>1 vết xước nhỏ ở cản sau</b> nhưng nội thất còn mới, máy móc vận hành tốt.<br />
-                      Giá tham khảo dựa trên các xe cùng đời, cùng tình trạng trên thị trường hiện tại.
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowPackages(!showPackages)}
-                    className='w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition font-semibold'
-                  >
-                    {showPackages ? 'Ẩn thông tin chi tiết' : 'Xem thông tin chi tiết định giá'}
-                  </button>
+                  {isPro ? (
+                    <div className='rounded-2xl border border-purple-200 bg-gradient-to-br from-[#ffffff] via-[#f8f5ff] to-[#eef4ff] p-5 shadow-xl shadow-purple-100'>
+                      <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
+                        <div>
+                          <p className='text-xs uppercase tracking-wider text-purple-600 font-extrabold'>ValuCar Pro Analysis</p>
+                          <h4 className='text-xl font-extrabold text-slate-900'>Báo cáo định giá chuyên sâu</h4>
+                        </div>
+                        <div className='px-3 py-1.5 rounded-full bg-white border border-purple-200 text-sm font-bold text-purple-700'>
+                          Điểm rủi ro: {proValuation.riskScore}/100
+                        </div>
+                      </div>
+
+                      <div className='grid md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4'>
+                        <div className='rounded-xl bg-white border border-slate-200 p-3'>
+                          <p className='text-xs text-slate-500 mb-1'>Khung giá thông minh</p>
+                          <p className='text-lg font-bold text-primary'>
+                            {proValuation.low != null && proValuation.high != null
+                              ? `${proValuation.low.toLocaleString('vi-VN')} đ - ${proValuation.high.toLocaleString('vi-VN')} đ`
+                              : 'Đang cập nhật'}
+                          </p>
+                          <p className='text-xs text-slate-500 mt-1'>
+                            Biên độ: {proValuation.spread != null ? `${proValuation.spread.toLocaleString('vi-VN')} đ` : 'N/A'}
+                          </p>
+                        </div>
+                        <div className='rounded-xl bg-white border border-slate-200 p-3'>
+                          <p className='text-xs text-slate-500 mb-1'>Chiến lược chốt giá</p>
+                          <p className='text-sm text-slate-700'>Bán nhanh: <b>{proValuation.negotiateFast != null ? `${proValuation.negotiateFast.toLocaleString('vi-VN')} đ` : 'N/A'}</b></p>
+                          <p className='text-sm text-slate-700'>Mục tiêu: <b>{proValuation.negotiateTarget != null ? `${proValuation.negotiateTarget.toLocaleString('vi-VN')} đ` : 'N/A'}</b></p>
+                          <p className='text-sm text-slate-700'>Giữ giá: <b>{proValuation.negotiateHold != null ? `${proValuation.negotiateHold.toLocaleString('vi-VN')} đ` : 'N/A'}</b></p>
+                        </div>
+                        <div className='rounded-xl bg-white border border-slate-200 p-3'>
+                          <p className='text-xs text-slate-500 mb-1'>Chỉ số thị trường</p>
+                          <p className='text-sm text-slate-700'>Độ tin cậy: <b>{proValuation.confidenceScore}/100</b></p>
+                          <p className='text-sm text-slate-700'>Thanh khoản: <b>{proValuation.liquidityScore}/100</b></p>
+                          <p className='text-sm text-slate-700'>Giá neo đề xuất: <b>{proValuation.negotiateAnchor != null ? `${proValuation.negotiateAnchor.toLocaleString('vi-VN')} đ` : 'N/A'}</b></p>
+                        </div>
+                        <div className='rounded-xl bg-white border border-slate-200 p-3'>
+                          <p className='text-xs text-slate-500 mb-1'>Snapshot xe của bạn</p>
+                          <div className='space-y-1'>
+                            {proValuation.premiumHighlights.map((line, idx) => (
+                              <p key={idx} className='text-sm text-slate-700'>- {line}</p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className='grid lg:grid-cols-5 gap-3'>
+                        <div className='lg:col-span-3 rounded-xl bg-white border border-slate-200 p-4'>
+                          <p className='text-sm font-bold text-slate-900 mb-2'>Lý do định giá chi tiết</p>
+                          <ul className='space-y-2 text-sm text-slate-700'>
+                            {(proValuation.reasons.length ? proValuation.reasons : [explanation]).map((line, idx) => (
+                              <li key={idx} className='flex gap-2'>
+                                <Icon icon='tabler:sparkles' className='text-purple-500 mt-0.5 shrink-0' />
+                                <span>{line}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className='lg:col-span-2 rounded-xl bg-white border border-slate-200 p-4'>
+                          <p className='text-sm font-bold text-slate-900 mb-2'>Checklist tăng giá bán (Pro)</p>
+                          <ul className='space-y-2 text-sm text-slate-700'>
+                            {proValuation.actionPlan.map((line, idx) => (
+                              <li key={idx} className='flex gap-2'>
+                                <Icon icon='tabler:circle-check-filled' className='text-emerald-500 mt-0.5 shrink-0' />
+                                <span>{line}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className='mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3'>
+                        <p className='text-xs text-amber-700'>
+                          <b>Lưu ý Pro:</b> Khung giá trên phản ánh dữ liệu hiện tại và hành vi thương lượng phổ biến. Giá chốt thực tế có thể dao động theo vùng, lịch sử bảo dưỡng và thời điểm bán.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className='bg-blue-50 border-l-4 border-primary p-4 rounded-lg shadow-sm leading-relaxed whitespace-pre-line'>
+                        <span className='block font-semibold text-primary mb-1'>Lý do định giá:</span>
+                        <span className='text-gray-700'>{explanation}</span>
+                      </div>
+                      <button
+                        onClick={() => setShowPackages(!showPackages)}
+                        className='w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition font-semibold'
+                      >
+                        {showPackages ? 'Ẩn thông tin chi tiết' : 'Mở khóa báo cáo VIP Pro'}
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -884,6 +1032,14 @@ const ValuationForm = () => {
         price={price}
         priceLow={priceLow}
         priceHigh={priceHigh}
+        vehicle={{
+          brand: getBrandName(),
+          model: getModelName(),
+          year: selectedYear,
+          color: selectedColor,
+          mileage,
+          version: selectedVersion,
+        }}
       />
     </section>
   )
