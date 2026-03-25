@@ -14,6 +14,15 @@ type MarketInsight = {
   median: number | null
 }
 
+type MarketCacheEntry = {
+  at: number
+  insights: MarketInsight[]
+}
+
+const MARKET_CACHE_TTL_MS = 10 * 60 * 1000
+const MARKET_FETCH_TIMEOUT_MS = 2500
+const marketCache = new Map<string, MarketCacheEntry>()
+
 function normalizeQueryPart(v: unknown) {
   return String(v ?? '').trim()
 }
@@ -34,17 +43,57 @@ function median(values: number[]) {
 }
 
 function extractPricesFromHtml(html: string) {
-  const matches = html.match(/(\d{2,4}(?:[.,]\d{3}){1,2}|\d{2,4})\s*(?:triệu|tr|tỷ|ty|đ|vnd)/gi) || []
-  const values = matches
-    .map((m) => {
-      const lower = m.toLowerCase()
-      const n = toNumberFromText(lower)
-      if (n == null) return null
-      if (lower.includes('tỷ') || lower.includes('ty')) return n * 1_000_000_000
-      if (lower.includes('triệu') || lower.includes('tr')) return n * 1_000_000
-      return n
-    })
-    .filter((v): v is number => v != null && v > 40_000_000 && v < 15_000_000_000)
+  const maxAgeDays = 30
+  const now = new Date()
+  const priceRegex = /(\d{2,4}(?:[.,]\d{3}){1,2}|\d{2,4})\s*(triệu|tr|tỷ|ty|đ|vnd)/gi
+  const values: number[] = []
+
+  function parseAgeDays(context: string): number | null {
+    const t = context.toLowerCase()
+    if (t.includes('hôm nay') || t.includes('hom nay') || t.includes('vừa đăng') || t.includes('mới đăng')) return 0
+    if (t.includes('hôm qua') || t.includes('hom qua')) return 1
+
+    const dayAgo = t.match(/(\d+)\s*ngày\s*trước/)
+    if (dayAgo) return Number(dayAgo[1])
+    const weekAgo = t.match(/(\d+)\s*tuần\s*trước/)
+    if (weekAgo) return Number(weekAgo[1]) * 7
+
+    const dateMatch = t.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/)
+    if (dateMatch) {
+      const d = Number(dateMatch[1])
+      const m = Number(dateMatch[2]) - 1
+      let y = Number(dateMatch[3])
+      if (y < 100) y += 2000
+      const posted = new Date(y, m, d)
+      const diffMs = now.getTime() - posted.getTime()
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      return Number.isFinite(days) ? days : null
+    }
+    return null
+  }
+
+  let match: RegExpExecArray | null
+  while ((match = priceRegex.exec(html)) !== null) {
+    const amountRaw = match[1]
+    const unit = match[2].toLowerCase()
+    const contextStart = Math.max(0, match.index - 220)
+    const contextEnd = Math.min(html.length, match.index + match[0].length + 220)
+    const context = html.slice(contextStart, contextEnd)
+    const ageDays = parseAgeDays(context)
+
+    if (ageDays == null || ageDays > maxAgeDays) continue
+
+    const n = toNumberFromText(amountRaw)
+    if (n == null) continue
+    const price =
+      unit.includes('tỷ') || unit.includes('ty')
+        ? n * 1_000_000_000
+        : unit.includes('triệu') || unit.includes('tr')
+          ? n * 1_000_000
+          : n
+    if (price > 40_000_000 && price < 15_000_000_000) values.push(price)
+  }
+
   return values
 }
 
@@ -55,43 +104,59 @@ async function scrapeMarket(brand: string, model: string, year: string | number)
 
   if (!query) return []
 
+  const now = Date.now()
+  const cached = marketCache.get(query)
+  if (cached && now - cached.at < MARKET_CACHE_TTL_MS) {
+    return cached.insights
+  }
+
   const targets = [
     { source: 'ChoTot', url: `https://xe.chotot.com/mua-ban-oto?q=${encodeURIComponent(query)}` },
     { source: 'Bonbanh', url: `https://bonbanh.com/oto/?q=${encodeURIComponent(query)}` },
   ]
 
-  const insights: MarketInsight[] = []
-  for (const target of targets) {
+  const insights = await Promise.all(targets.map(async (target): Promise<MarketInsight> => {
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), MARKET_FETCH_TIMEOUT_MS)
       const res = await fetch(target.url, {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           Accept: 'text/html,application/xhtml+xml',
         },
+        signal: controller.signal,
         next: { revalidate: 0 },
       })
+      clearTimeout(timeout)
       if (!res.ok) {
-        insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null })
-        continue
+        return { source: target.source, sampleCount: 0, low: null, high: null, median: null }
       }
       const html = await res.text()
       const prices = extractPricesFromHtml(html).slice(0, 120)
       if (!prices.length) {
-        insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null })
-        continue
+        return { source: target.source, sampleCount: 0, low: null, high: null, median: null }
       }
-      insights.push({
+      return {
         source: target.source,
         sampleCount: prices.length,
         low: Math.min(...prices),
         high: Math.max(...prices),
         median: median(prices),
-      })
+      }
     } catch {
-      insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null })
+      return { source: target.source, sampleCount: 0, low: null, high: null, median: null }
     }
+  }))
+
+  const hasData = insights.some((i) => i.sampleCount > 0 && i.median != null)
+  if (hasData) {
+    marketCache.set(query, { at: now, insights })
+  } else if (cached) {
+    // Use last known good data to avoid empty responses on temporary failures.
+    return cached.insights
   }
+
   return insights
 }
 
@@ -160,6 +225,26 @@ export async function POST(request: NextRequest) {
 
     const marketInsights = await scrapeMarket(String(brand ?? ''), String(model ?? ''), year)
     const market = marketAnchor(marketInsights)
+
+    if (market) {
+      const spread = Math.max(20_000_000, Math.round(market.median * 0.06))
+      const lowByMedian = Math.max(0, market.median - spread)
+      const highByMedian = market.median + spread
+      const low = market.low != null ? Math.max(lowByMedian, Math.round(market.low * 0.95)) : lowByMedian
+      const high = market.high != null ? Math.min(highByMedian, Math.round(market.high * 1.05)) : highByMedian
+      const finalLow = Math.min(low, high - 5_000_000)
+      const finalHigh = Math.max(high, finalLow + 5_000_000)
+      const finalPrice = Math.round((finalLow + finalHigh) / 2)
+      return NextResponse.json({
+        price: finalPrice,
+        priceLow: finalLow,
+        priceHigh: finalHigh,
+        explanation:
+          'Định giá được suy ra trực tiếp từ dữ liệu thị trường trong 30 ngày gần nhất (Chợ Tốt/Bonbanh), đã lọc outlier để tránh giá ảo.',
+        source: 'market',
+        marketInsights,
+      })
+    }
 
     if (!GEMINI_API_KEY) {
       return NextResponse.json({ ...fallbackValuation(parsedYear, parsedMileage), marketInsights })

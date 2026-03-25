@@ -60,13 +60,13 @@ const Signin = () => {
       </div>
       
       <h3 className="text-2xl font-bold text-midnight_text mb-2">Đăng Nhập Hệ Thống</h3>
-      <p className="text-sm text-gray-500 mb-8">Xin chào bạn đã quay trở lại với ValuCar</p>
-
+      <p className="text-sm text-gray-500 mb-8">Xin chào bạn đã quay trở lại với ValuCar </p>
+      <p className="text-sm text-gray-500 mb-8">Tài khoản demo : admin - mật khẩu : 123</p>
       <form onSubmit={loginUser}>
         <div className='mb-5'>
           <input
             type='text'
-            placeholder='Tài khoản (admin)'
+            placeholder='Tài khoản'
             onChange={(e) =>
               setLoginData({ ...loginData, email: e.target.value })
             }

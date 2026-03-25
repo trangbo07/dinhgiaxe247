@@ -46,38 +46,39 @@ const ValuationForm = () => {
   const [showProRequiredModal, setShowProRequiredModal] = useState(false)
   const [proModalMessage, setProModalMessage] = useState('')
 
-  const { isPro, deductBalance, balance } = useWallet()
+  const { isPro, canUseValuation, consumeValuationUse, remainingFreeValuations, syncFreeUsageForUser } = useWallet()
   const { data: session } = useSession()
+  const [businessAccessForCurrentResult, setBusinessAccessForCurrentResult] = useState(false)
   const imageSteps = [
     {
       label: 'Ảnh 1: Đít xe',
       description: 'Chụp rõ phần đuôi xe để nhận diện hãng và dòng xe.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/650272415_122177232320669678_299455862335955083_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=e06c5d&_nc_eui2=AeEjXB0RbrnjEk6ZbTH7lVRLWKj2tosuo9JYqPa2iy6j0krSfALaVjtKAAXiqFvOBsO35NuCfZmdK2HoMyOaW40_&_nc_ohc=yeeqFbSBQlYQ7kNvwGFQk4S&_nc_oc=AdkMwA3oRhblsD8RyOUn5jZ9Vy_kFz_ZKYM3vHaEt2YHq8YJi24R8x5J1JyAjUNZxSw&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=PVOyDJbmBTDeLAI6PnBy0Q&_nc_ss=8&oh=00_Afwp8Q0rBOi_N3F3qOIT8OeaVYiwRQ5w_JQpfleTk6N90g&oe=69BC8681',
+      example: '/images/car/duoixe.png',
     },
     {
       label: 'Ảnh 2: Mặt trước vô lăng',
       description: 'Chụp màn hình đồng hồ công tơ mét để lấy số km đã đi.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/652687704_122177232332669678_8189232061790795806_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=e06c5d&_nc_ohc=YsgXZxd25KQQ7kNvwEsc-d6&_nc_oc=Adnxeem8qiMEgkFBxVzTwnC5csMlPb52Ll24YRxErvtoaT5ydMr77stJHfwhnYIZrLs&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=W6ri8bYXCaR4fwCQCASAjA&_nc_ss=8&oh=00_Afw8yTsW6ePw5dmOQFORRK4lY844mGqvVnMj3px5MVAjMw&oe=69BC8C46',
+      example: '/images/car/anh_2.png',
     },
     {
       label: 'Ảnh 3: Góc chéo trước xe',
       description: 'Chụp góc chéo phía trước để nhận diện tổng thể.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/651217708_122177232710669678_5329864960457114276_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=e06c5d&_nc_eui2=AeHD0YYuA8P6hmZAYBroLdyEIM39GDiVv5Ygzf0YOJW_lq_tw4ajz-PXYKLxaCoM34bfpwUXcbTQu0fQ11NT9acc&_nc_ohc=zuXRXznrGTQQ7kNvwHa3cKY&_nc_oc=AdkRTDDOFZ9xXON9HEVH6D0uJyYKII1V8ihUUxQJEGebFkdx79ZwQj5EBbCeL5OLUfY&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=nRdRCjV0t0stmxJ5fj-KXA&_nc_ss=8&oh=00_Afym7ndSj3p02uKQbNerrhZs9sg6-Fnx_44eW85aRIm-Sg&oe=69BC83F6',
+      example: '/images/car/anh3.png',
     },
     {
       label: 'Ảnh 4: Góc chéo sau xe',
       description: 'Chụp góc chéo phía sau để nhận diện tổng thể.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/652514847_122177232362669678_4064734653303694103_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=e06c5d&_nc_ohc=8ENqPZriP5QQ7kNvwF3U4yK&_nc_oc=AdlrUbykGdwZ2WLq1QPbkvxOCchE_YLyqUx3b_hpvIno8y4ajmH8lS5L2xnSM2WNjMM&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=VN9b3AoGRFjhhiz3eCNuAA&_nc_ss=8&oh=00_Afx3MTFxeouCD1qozk4JsuYznif-S4FGeJJgjr97bzVJYg&oe=69BCAB63',
+      example: '/images/car/anh4.png',
     },
     {
       label: 'Ảnh 5: Nội thất',
       description: 'Chụp nội thất xe, tập trung vào các chi tiết quan trọng.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/650754677_122177232716669678_3541051047642227354_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=e06c5d&_nc_ohc=y3j_Z7BnnKoQ7kNvwGaBOfP&_nc_oc=Adn_QGpUtYvYznME6dCm7lrElWQAOp2qOhIP-o3PyLx1tf9eLSvDGGaDrCXj5YRgxkE&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=DAbz3bpc35JfQKFXJVFsBA&_nc_ss=8&oh=00_Afyq5eYEqPLXf3TWaVZuI_IV2FFdGr2uYov5hY665daQ-g&oe=69BC89BD',
+      example: '/images/car/nh5.png',
     },
     {
       label: 'Ảnh 6: Vết xước, hư hại',
       description: 'Chụp rõ các vết xước, móp, hư hại nếu có.',
-      example: 'https://scontent.fhan18-1.fna.fbcdn.net/v/t39.30808-6/650727052_122177232728669678_4044222338380675829_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=e06c5d&_nc_ohc=aEqUmOT69woQ7kNvwHvLhTk&_nc_oc=AdlxAcWTIQEVJQ0FoDnfvidGOcYl9Vh8o47y3raNjP5iFh4z8uNuY5aBDazdzsrpkGc&_nc_zt=23&_nc_ht=scontent.fhan18-1.fna&_nc_gid=MWgWvZEBeqtXJZc-VmrhNw&_nc_ss=8&oh=00_AfxajXoF2QwSBOwZSEuM2PrggT59ZklPqh63u0dlcIjTMQ&oe=69BCB806',
+      example: '/images/car/anh6.png',
     },
   ]
 
@@ -154,6 +155,17 @@ const ValuationForm = () => {
   useEffect(() => {
     setBrands(data.brands)
   }, [])
+
+  useEffect(() => {
+    const email = (session?.user as any)?.email as string | undefined
+    if (email) syncFreeUsageForUser(email)
+    else syncFreeUsageForUser(null)
+  }, [session, syncFreeUsageForUser])
+
+  useEffect(() => {
+    // Reset quyền “VIP Doanh nghiệp” theo kết quả định giá hiện tại.
+    setBusinessAccessForCurrentResult(false)
+  }, [selectedBrand, selectedModel, selectedYear, selectedVersion, selectedColor, mileage])
 
   useEffect(() => {
     if (selectedBrand) {
@@ -236,8 +248,29 @@ const ValuationForm = () => {
   const getModelName = () => models.find((m) => m.id === selectedModel)?.name ?? selectedModel
 
   const calcPrice = async () => {
+    if (!session) {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng định giá.')
+      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
+        ;(window as any).openSignInModal()
+      }
+      return
+    }
+
+    const email = (session.user as any)?.email as string | undefined
+    if (email) syncFreeUsageForUser(email)
+
+    const unlockedForThisRun = isPro || canUseValuation()
+    if (!unlockedForThisRun) {
+      toast.error('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp.')
+      return
+    }
+
     setValuationLoading(true)
     try {
+      if (!isPro) {
+        const email = (session.user as any)?.email as string | undefined
+        consumeValuationUse(email ?? null)
+      }
       const res = await fetch('/api/valuation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -255,6 +288,7 @@ const ValuationForm = () => {
         setPriceLow(resData.priceLow ?? null)
         setPriceHigh(resData.priceHigh ?? null)
         setExplanation(resData.explanation || '')
+        setBusinessAccessForCurrentResult(unlockedForThisRun)
       }
     } catch (err) {
       console.error('valuation error', err)
@@ -265,27 +299,17 @@ const ValuationForm = () => {
 
   const handleViewDetails = () => {
     if (!session) {
-      setProModalMessage('Vui lòng đăng nhập và nâng cấp gói Pro để xem báo cáo chi tiết định giá.')
+      setProModalMessage('Vui lòng đăng nhập để xem báo cáo chi tiết định giá.')
       setShowProRequiredModal(true)
-      return;
-    }
-    if (!isPro) {
-      setProModalMessage('Báo cáo chi tiết định giá là tính năng độc quyền cho thành viên Pro. Vui lòng nâng cấp gói để trải nghiệm.')
-      setShowProRequiredModal(true)
-      return;
-    }
-    if (balance < 50000) {
-      toast.error('Số dư không đủ. Mỗi lần xem báo cáo chi tiết tốn 50.000 VNĐ.');
-      return;
+      return
     }
 
-    // Deduct money
-    const success = deductBalance(50000);
-    if (!success) {
-      toast.error('Lỗi khi trừ tiền ví nội bộ.');
-      return;
+    if (!businessAccessForCurrentResult) {
+      setProModalMessage('Báo cáo chi tiết định giá là tính năng dành cho Doanh nghiệp (hoặc 3 lượt định giá free). Vui lòng nâng cấp để trải nghiệm.')
+      setShowProRequiredModal(true)
+      return
     }
-    toast.success('Đã trừ 50.000 VNĐ phí xem báo cáo.');
+
     setShowModal(true)
   }
 
@@ -402,27 +426,15 @@ const ValuationForm = () => {
                   className='bg-white text-primary border-2 border-primary/20 px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all'
                   onClick={() => {
                     if (!session) {
-                      setProModalMessage('Vui lòng đăng nhập và nâng cấp gói Pro để sử dụng trợ lý định giá hình ảnh AI.')
+                      setProModalMessage('Vui lòng đăng nhập và nâng cấp gói Doanh nghiệp để sử dụng trợ lý định giá hình ảnh AI.')
                       setShowProRequiredModal(true)
                       return;
                     }
                     if (!isPro) {
-                      setProModalMessage('Định giá qua ảnh là tính năng độc quyền cho thành viên Pro. Vui lòng nâng cấp gói để trải nghiệm.')
+                      setProModalMessage('Định giá qua ảnh là tính năng độc quyền cho gói Doanh nghiệp. Vui lòng nâng cấp để trải nghiệm.')
                       setShowProRequiredModal(true)
                       return;
                     }
-                    if (balance < 50000) {
-                      toast.error('Số dư không đủ. Mỗi lần định giá tốn 50.000 VNĐ.');
-                      return;
-                    }
-
-                    // Deduct money
-                    const success = deductBalance(50000);
-                    if (!success) {
-                      toast.error('Lỗi khi trừ tiền ví nội bộ.');
-                      return;
-                    }
-                    toast.success('Đã trừ 50.000 VNĐ phí định giá bằng hình ảnh.');
                     setShowImageModal(true);
                   }}
                 >
@@ -435,9 +447,14 @@ const ValuationForm = () => {
                     </span>
                   </div>
                   <Icon icon="tabler:camera-bolt" className="text-xl text-yellow-500" />
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700 font-extrabold">Định Giá Qua Ảnh (PRO)</span>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700 font-extrabold">Định Giá Qua Ảnh (Doanh nghiệp)</span>
                 </button>
               </div>
+              {!isPro && (
+                <p className='text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mt-3 inline-block'>
+                  Gói Cá nhân: còn {remainingFreeValuations}/3 lượt định giá trong tháng này.
+                </p>
+              )}
             </div>
             <div className='lg:col-span-5 flex items-center justify-center bg-gray-50/50 rounded-2xl border border-gray-100 p-8'>
               {valuationLoading ? (
@@ -575,11 +592,11 @@ const ValuationForm = () => {
               {explanation && (
                 <div className='mb-8'>
                   <h3 className='text-lg font-semibold text-primary mb-3'>Lý Do Định Giá</h3>
-                  {isPro ? (
+                  {businessAccessForCurrentResult ? (
                     <div className='rounded-2xl border border-purple-200 bg-gradient-to-br from-[#ffffff] via-[#f8f5ff] to-[#eef4ff] p-5 shadow-xl shadow-purple-100'>
                       <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
                         <div>
-                          <p className='text-xs uppercase tracking-wider text-purple-600 font-extrabold'>ValuCar Pro Analysis</p>
+                          <p className='text-xs uppercase tracking-wider text-purple-600 font-extrabold'>ValuCar Business Analysis</p>
                           <h4 className='text-xl font-extrabold text-slate-900'>Báo cáo định giá chuyên sâu</h4>
                         </div>
                         <div className='px-3 py-1.5 rounded-full bg-white border border-purple-200 text-sm font-bold text-purple-700'>
@@ -634,7 +651,7 @@ const ValuationForm = () => {
                           </ul>
                         </div>
                         <div className='lg:col-span-2 rounded-xl bg-white border border-slate-200 p-4'>
-                          <p className='text-sm font-bold text-slate-900 mb-2'>Checklist tăng giá bán (Pro)</p>
+                          <p className='text-sm font-bold text-slate-900 mb-2'>Checklist tăng giá bán (Doanh nghiệp)</p>
                           <ul className='space-y-2 text-sm text-slate-700'>
                             {proValuation.actionPlan.map((line, idx) => (
                               <li key={idx} className='flex gap-2'>
@@ -648,7 +665,7 @@ const ValuationForm = () => {
 
                       <div className='mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3'>
                         <p className='text-xs text-amber-700'>
-                          <b>Lưu ý Pro:</b> Khung giá trên phản ánh dữ liệu hiện tại và hành vi thương lượng phổ biến. Giá chốt thực tế có thể dao động theo vùng, lịch sử bảo dưỡng và thời điểm bán.
+                          <b>Lưu ý Doanh nghiệp:</b> Khung giá trên phản ánh dữ liệu hiện tại và hành vi thương lượng phổ biến. Giá chốt thực tế có thể dao động theo vùng, lịch sử bảo dưỡng và thời điểm bán.
                         </p>
                       </div>
                     </div>
@@ -662,7 +679,7 @@ const ValuationForm = () => {
                         onClick={() => setShowPackages(!showPackages)}
                         className='w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition font-semibold'
                       >
-                        {showPackages ? 'Ẩn thông tin chi tiết' : 'Mở khóa báo cáo VIP Pro'}
+                        {showPackages ? 'Ẩn thông tin chi tiết' : 'Mở khóa báo cáo Doanh nghiệp'}
                       </button>
                     </>
                   )}
@@ -962,7 +979,7 @@ const ValuationForm = () => {
         </div>
       )}
 
-      {/* PRO Required Modal */}
+      {/* Business Required Modal */}
       {showProRequiredModal && (
         <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]'>
           <div className='bg-white rounded-3xl max-w-md w-full p-8 relative shadow-2xl border border-yellow-100 flex flex-col items-center text-center mx-4 transform transition-all scale-100'>
@@ -979,7 +996,7 @@ const ValuationForm = () => {
             </div>
 
             <h3 className='text-3xl font-extrabold text-midnight_text mb-3'>
-              Tính Năng <span className='text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600'>PRO</span>
+              Tính Năng <span className='text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600'>Doanh nghiệp</span>
             </h3>
 
             <p className='text-gray-600 text-lg mb-8 leading-relaxed px-4'>
@@ -1013,7 +1030,7 @@ const ValuationForm = () => {
                     }
                   }}
                   className='w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-xl shadow-yellow-500/30 hover:shadow-2xl hover:scale-[1.02] transition-all flex justify-center items-center gap-2'>
-                  Nâng Cấp PRO Ngay <Icon icon="tabler:arrow-right" className="text-xl" />
+                  Nâng Cấp Doanh nghiệp Ngay <Icon icon="tabler:arrow-right" className="text-xl" />
                 </button>
               )}
               <button
