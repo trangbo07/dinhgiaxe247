@@ -30,10 +30,10 @@ const People = () => {
           </div>
           <div className='col-span-6 flex justify-center flex-col gap-4 lg:pl-24 mt-10 lg:mt-0 '>
             <h2 className='text-midnight_text text-center lg:text-start'>
-              Được tin tưởng bởi hơn 100k+ người dùng trên toàn thế giới.
+              Minh bạch trong cách định giá, dễ kiểm chứng và sát thị trường.
             </h2>
             <p className='text-black/75 text-lg font-normal text-center lg:text-start max-w-md mx-auto lg:mx-0'>
-              Hệ thống định giá xe giúp bạn đánh giá giá trị xe, so sánh với thị trường, và quản lý danh mục xe—all trong một ứng dụng đơn giản.
+              ValuCar kết hợp AI và dữ liệu thị trường để trả về khoảng giá tham khảo kèm lý do rõ ràng. Bạn có thể đối chiếu theo mẫu tin tương tự, theo dõi lịch sử định giá và nhận tư vấn tình huống đặc biệt ngay trên cùng một nền tảng.
             </p>
             <Link
               href={'/'}

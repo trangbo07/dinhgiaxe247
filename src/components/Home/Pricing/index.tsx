@@ -68,6 +68,7 @@ const Pricing = () => {
   }
 
   const filteredPlans = plans.filter((item) => item.category.includes(selectedCategory))
+  const isSinglePlan = !loading && filteredPlans.length === 1
 
   return (
     <section id='pricing' className='bg-header relative py-20'>
@@ -91,7 +92,11 @@ const Pricing = () => {
           </div>
         </div>
 
-        <div className='mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-7xl mx-auto'>
+        <div
+          className={`mt-16 grid gap-8 px-4 max-w-7xl mx-auto ${
+            isSinglePlan ? 'grid-cols-1 place-items-center' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          }`}
+        >
           {loading
             ? Array.from({ length: 3 }).map((_, i) => <PlansSkeleton key={i} />)
             : filteredPlans.map((item, index) => {
@@ -100,21 +105,44 @@ const Pricing = () => {
                 const isPremium = isBusiness && item.heading === 'Gói Năm'
 
                 return (
-                  <div className={`relative group transition-all duration-300 ${isPremium || isPopular ? 'md:scale-105 lg:scale-105' : ''}`} key={index}>
-                    <div className={`relative h-full rounded-3xl overflow-hidden transition-all duration-300 ${isPremium || isPopular ? 'bg-gradient-to-br from-slate-50 to-white border-2 border-transparent shadow-2xl' : 'bg-white shadow-xl hover:shadow-2xl'}`}>
+                  <div
+                    className={`relative group transition-all duration-300 w-full ${
+                      isSinglePlan ? 'max-w-md' : ''
+                    } ${isPremium || isPopular ? 'md:scale-105 lg:scale-105' : ''}`}
+                    key={index}
+                  >
+                    <div
+                      className={`relative h-full overflow-hidden transition-all duration-300 ${
+                        isSinglePlan ? 'rounded-2xl' : 'rounded-3xl'
+                      } ${isPremium || isPopular ? 'bg-gradient-to-br from-slate-50 to-white border-2 border-transparent shadow-2xl' : 'bg-white shadow-xl hover:shadow-2xl'}`}
+                    >
                       {(isPremium || isPopular) && (
                         <div className={`absolute top-0 left-0 right-0 py-3 px-4 text-center font-bold text-white text-sm tracking-wide ${isPremium ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 shadow-lg' : 'bg-gradient-to-r from-blue-500 via-purple-500 to-purple-600 shadow-lg'}`}>
                           {isPremium ? 'GIÁ TRỊ CAO NHẤT' : 'PHỔ BIẾN NHẤT'}
                         </div>
                       )}
                       <div className='absolute -right-20 -top-20 w-40 h-40 bg-gradient-to-br from-primary/5 to-primary/10 rounded-full blur-3xl opacity-50'></div>
-                      <div className={`relative p-8 pt-10 ${(isPremium || isPopular) ? 'pt-16' : ''}`}>
-                        <h3 className='text-2xl font-bold text-midnight_text mb-2 group-hover:text-primary transition-colors'>{item.heading}</h3>
-                        <div className='h-1 w-12 bg-gradient-to-r from-primary to-primary/50 rounded-full mb-6'></div>
-                        <div className='mb-8'>
+                      <div
+                        className={`relative ${isSinglePlan ? 'p-6 pt-7' : 'p-8 pt-10'} ${isPremium || isPopular ? 'pt-16' : ''}`}
+                      >
+                        <h3
+                          className={`font-bold text-midnight_text mb-2 group-hover:text-primary transition-colors ${
+                            isSinglePlan ? 'text-xl' : 'text-2xl'
+                          }`}
+                        >
+                          {item.heading}
+                        </h3>
+                        <div className={`h-1 bg-gradient-to-r from-primary to-primary/50 rounded-full ${isSinglePlan ? 'w-10 mb-4' : 'w-12 mb-6'}`}></div>
+                        <div className={isSinglePlan ? 'mb-6' : 'mb-8'}>
                           <div className='flex items-baseline gap-2'>
-                            <span className='text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent'>{item.price.monthly.toLocaleString('vi-VN')}</span>
-                            <span className='text-2xl font-semibold text-gray-600'>đ</span>
+                            <span
+                              className={`font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent ${
+                                isSinglePlan ? 'text-4xl' : 'text-5xl'
+                              }`}
+                            >
+                              {item.price.monthly.toLocaleString('vi-VN')}
+                            </span>
+                            <span className={`font-semibold text-gray-600 ${isSinglePlan ? 'text-lg' : 'text-2xl'}`}>đ</span>
                           </div>
                           <p className='text-gray-500 text-sm mt-2 font-medium'>
                             {item.heading === 'Gối Tháng' ? 'Mỗi tháng' : item.heading === 'Gói Quý' ? 'Mỗi quý' : item.heading === 'Gói Năm' ? 'Mỗi năm' : ''}
@@ -123,15 +151,22 @@ const Pricing = () => {
                         <button
                           onClick={() => handleBuy(item.heading, item.price.monthly)}
                           disabled={buyingPlan === item.heading}
-                          className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex justify-center items-center gap-2 mb-8 ${isBusiness ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg hover:shadow-2xl hover:scale-105 hover:from-yellow-500 hover:to-yellow-700' : 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white hover:scale-105'}`}
+                          className={`w-full rounded-xl font-bold transition-all duration-300 flex justify-center items-center gap-2 ${
+                            isSinglePlan ? 'py-3 px-5 text-base mb-6' : 'py-4 px-6 text-lg mb-8'
+                          } ${isBusiness ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg hover:shadow-2xl hover:scale-105 hover:from-yellow-500 hover:to-yellow-700' : 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white hover:scale-105'}`}
                         >
                           {buyingPlan === item.heading ? (<><Icon icon='tabler:loader' className='animate-spin text-xl' /> Đang xử lý...</>) : isBusiness && isPro ? (<><Icon icon='tabler:check' className='text-xl' /> Đã kích hoạt</>) : item.button}
                         </button>
-                        <div className='space-y-4'>
+                        <div className={isSinglePlan ? 'space-y-3' : 'space-y-4'}>
                           <p className='text-xs font-bold text-gray-400 uppercase tracking-wider'>Tính năng bao gồm:</p>
                           {item.option.map((feature, idx) => (
                             <div key={idx} className='flex items-start gap-3'>
-                              <div className='flex-shrink-0 mt-1'><Icon icon='tabler:check-circle-filled' className={`text-lg ${isBusiness ? 'text-blue-500' : 'text-emerald-500'}`} /></div>
+                              <div className='flex-shrink-0 mt-1'>
+                                <Icon
+                                  icon='tabler:check-circle-filled'
+                                  className={`${isSinglePlan ? 'text-base' : 'text-lg'} ${isBusiness ? 'text-blue-500' : 'text-emerald-500'}`}
+                                />
+                              </div>
                               <p className='text-gray-700 font-medium text-sm leading-relaxed'>{feature}</p>
                             </div>
                           ))}

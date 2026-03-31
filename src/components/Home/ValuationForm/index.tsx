@@ -247,13 +247,13 @@ const ValuationForm = () => {
   const getBrandName = () => brands.find((b) => b.id === selectedBrand)?.name ?? selectedBrand
   const getModelName = () => models.find((m) => m.id === selectedModel)?.name ?? selectedModel
 
-  const calcPrice = async () => {
+  const calcPrice = async (): Promise<boolean> => {
     if (!session) {
       toast.error('Vui lòng đăng nhập để sử dụng tính năng định giá.')
       if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
         ;(window as any).openSignInModal()
       }
-      return
+      return false
     }
 
     const email = (session.user as any)?.email as string | undefined
@@ -262,7 +262,7 @@ const ValuationForm = () => {
     const unlockedForThisRun = isPro || canUseValuation()
     if (!unlockedForThisRun) {
       toast.error('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp.')
-      return
+      return false
     }
 
     setValuationLoading(true)
@@ -289,12 +289,16 @@ const ValuationForm = () => {
         setPriceHigh(resData.priceHigh ?? null)
         setExplanation(resData.explanation || '')
         setBusinessAccessForCurrentResult(unlockedForThisRun)
+        return true
       }
     } catch (err) {
       console.error('valuation error', err)
+      return false
     } finally {
       setValuationLoading(false)
     }
+
+    return false
   }
 
   const handleViewDetails = () => {
@@ -416,7 +420,9 @@ const ValuationForm = () => {
               <div className='flex flex-col sm:flex-row gap-4 mt-8'>
                 <button
                   className='bg-gradient-to-r from-primary to-blue-600 shadow-lg shadow-primary/30 text-white px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:opacity-90 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none'
-                  onClick={calcPrice}
+                  onClick={() => {
+                    void calcPrice()
+                  }}
                   disabled={!selectedColor || !mileage || valuationLoading}
                 >
                   <Icon icon="tabler:calculator" className="text-xl" />
@@ -426,16 +432,20 @@ const ValuationForm = () => {
                   className='bg-white text-primary border-2 border-primary/20 px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all'
                   onClick={() => {
                     if (!session) {
-                      setProModalMessage('Vui lòng đăng nhập và nâng cấp gói Doanh nghiệp để sử dụng trợ lý định giá hình ảnh AI.')
+                      setProModalMessage('Vui lòng đăng nhập để sử dụng trợ lý định giá hình ảnh AI (gói Cá nhân giới hạn 3 lượt/tháng).')
                       setShowProRequiredModal(true)
-                      return;
+                      return
                     }
-                    if (!isPro) {
-                      setProModalMessage('Định giá qua ảnh là tính năng độc quyền cho gói Doanh nghiệp. Vui lòng nâng cấp để trải nghiệm.')
+
+                    // Gói Cá nhân cũng được dùng đầy đủ tính năng như Doanh nghiệp,
+                    // nhưng chỉ giới hạn số lượt định giá theo tháng.
+                    if (!isPro && !canUseValuation()) {
+                      setProModalMessage('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
                       setShowProRequiredModal(true)
-                      return;
+                      return
                     }
-                    setShowImageModal(true);
+
+                    setShowImageModal(true)
                   }}
                 >
                   <div className='absolute -top-3 -right-3'>
@@ -447,7 +457,7 @@ const ValuationForm = () => {
                     </span>
                   </div>
                   <Icon icon="tabler:camera-bolt" className="text-xl text-yellow-500" />
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700 font-extrabold">Định Giá Qua Ảnh (Doanh nghiệp)</span>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700 font-extrabold">Định giá bằng hình ảnh</span>
                 </button>
               </div>
               {!isPro && (
@@ -863,13 +873,16 @@ const ValuationForm = () => {
                 ) : (
                   <button
                     className='px-6 py-2 rounded-lg bg-blue-500 text-white text-base font-semibold shadow hover:bg-blue-600 transition disabled:opacity-50'
-                    onClick={() => {
+                    onClick={async () => {
                       setShowImageModal(false)
                       setShowImageLoading(true)
-                      setTimeout(() => {
-                        setShowImageLoading(false)
-                        setShowImageResult(true)
-                      }, 7000)
+                      const ok = await calcPrice()
+                      setShowImageLoading(false)
+                      if (ok) {
+                        setShowImageResult(false)
+                        setShowPackages(false)
+                        setShowModal(true)
+                      }
                     }}
                     disabled={imageFiles.some(f => !f)}
                   >Định giá ngay</button>
