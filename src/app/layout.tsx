@@ -1,15 +1,19 @@
 import { Poppins } from 'next/font/google'
 import type { Metadata } from 'next'
 import './globals.css'
-import Header from '@/components/Layout/Header'
-import Footer from '@/components/Layout/Footer'
+import LayoutChrome from '@/components/Layout/LayoutChrome'
 import ScrollToTop from '@/components/ScrollToTop'
 import Aoscompo from '@/utils/aos'
 import { Providers } from './Providers'
 
 export const metadata: Metadata = {
+  title: 'ValuCar - Định Giá Xe Ô Tô...',
+  description: 'ValuCar - Định Giá Xe Ô Tô...',
   icons: {
-    icon: '/images/logo/logo_Valucar.png?v=2',
+    icon: [
+      { url: '/images/logo/logo_Valucar.png?v=2', type: 'image/png', sizes: '32x32' },
+      { url: '/images/logo/logo_Valucar.png?v=2', type: 'image/png', sizes: '192x192' },
+    ],
     shortcut: '/images/logo/logo_Valucar.png?v=2',
     apple: '/images/logo/logo_Valucar.png?v=2',
   },
@@ -30,9 +34,8 @@ export default function RootLayout({
       <body className={`${font.className}`}>
         <Providers>
           <Aoscompo>
-            <Header />
-            {children}
-            <Footer />
+            <LayoutChrome>{children}</LayoutChrome>
+            <ScrollToTop />
           </Aoscompo>
         </Providers>
       </body>

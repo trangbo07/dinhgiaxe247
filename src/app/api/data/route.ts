@@ -8,6 +8,7 @@ import { footerlLinksData } from '@/types/footerlinks'
 
 const HeaderData: headerItem[] = [
   { label: 'Sản Phẩm', href: '/#product' },
+  { label: 'AdoCar', href: '/adocar' },
   { label: 'Giá', href: '/#pricing' },
   { label: 'Tính Năng', href: '/#features ' },
   { label: 'Liên Hệ', href: '/#contact ' },
@@ -45,11 +46,11 @@ const PlansData: plansData[] = [
     subscriber: 0,
     button: 'Đang dùng miễn phí',
     option: [
-        '3 lượt định giá / tháng (mỗi account)',
-        'Không giới hạn thời gian chat AI (giải đáp, tips định giá)',
-        'Lưu lại lịch sử các xe đã định giá',
-        'Gợi ý giá thu mua hợp lý theo thị trường',
-        'Báo cáo định giá chuyên sâu cho từng xe',
+      '3 lượt định giá / tháng (mỗi account)',
+      'Không giới hạn thời gian chat AI (giải đáp, tips định giá)',
+      'Lưu lại lịch sử các xe đã định giá',
+      'Gợi ý giá thu mua hợp lý theo thị trường',
+      'Báo cáo định giá chuyên sâu cho từng xe',
     ],
     category: ['personal'],
     imgSrc: '/images/pricing/starone.svg',
