@@ -87,8 +87,8 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
 
   return (
     <>
-      <div className='mb-6 text-center mx-auto inline-block max-w-[160px]'>
-        <Logo />
+      <div className="mx-auto mb-6 inline-block max-w-[160px] text-center">
+        <Logo linked={false} />
       </div>
 
       <h3 className='text-2xl font-bold text-midnight_text mb-2'>

@@ -82,6 +82,17 @@ export function rateLimitAuthValuation(userId: string): RateLimitResult {
   ]);
 }
 
+export function rateLimitAuthVehicleDetect(userId: string): RateLimitResult {
+  const perHour = envInt("RATE_AUTH_VEHICLE_DETECT_PER_HOUR", 30);
+  const perDay = envInt("RATE_AUTH_VEHICLE_DETECT_PER_DAY", 100);
+
+  return checkWindows(`auth-vdetect:${userId}`, [
+    { windowMs: 5 * 1000, max: 1 },
+    { windowMs: 60 * 60 * 1000, max: perHour },
+    { windowMs: 24 * 60 * 60 * 1000, max: perDay },
+  ]);
+}
+
 export function rateLimitAuthChat(userId: string): RateLimitResult {
   const perHour = envInt("RATE_AUTH_CHAT_PER_HOUR", 80);
   const perDay = envInt("RATE_AUTH_CHAT_PER_DAY", 300);

@@ -1,7 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
 const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
   process.env.SUPABASE_SECRET_KEY?.trim()
@@ -57,9 +59,20 @@ export function createSupabaseBrowserClient() {
 }
 
 /** Dùng cho auth (đăng nhập/đăng ký) trên server — anon key */
+export function getSupabaseAuthConfigError(): string | null {
+  if (!supabaseUrl) {
+    return 'Thiếu NEXT_PUBLIC_SUPABASE_URL trong file .env'
+  }
+  if (!supabaseAnonKey) {
+    return 'Thiếu NEXT_PUBLIC_SUPABASE_ANON_KEY (hoặc NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) trong file .env'
+  }
+  return null
+}
+
 export function createSupabaseAuthClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase auth env vars: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  const err = getSupabaseAuthConfigError()
+  if (err) {
+    throw new Error(err)
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, {

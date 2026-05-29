@@ -6,7 +6,7 @@ import Link from 'next/link'
 const tips = [
   {
     title: 'Chụp ảnh trước khi định giá',
-    body: 'Dùng workflow 6 ảnh trong mục Định giá — khách tin tưởng hơn khi thấy quy trình chuẩn.',
+    body: 'Tải 1 ảnh xe trong mục Định giá — AI gợi ý thông tin, xác nhận rồi định giá.',
   },
   {
     title: 'Hỏi AI về tình trạng xe',
@@ -35,9 +35,9 @@ const chatPrompts = [
 
 export default function DashboardInsights() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-midnight_text">Tips & Chat AI</h2>
+        <h2 className="text-xl font-bold text-midnight_text sm:text-2xl">Tips & Chat AI</h2>
         <p className="text-sm text-slate-500 mt-1">
           Chat không giới hạn thời gian — mở widget sau mỗi lần định giá ở mục{' '}
           <Link href="/dashboard/valuation" className="text-primary font-semibold">
@@ -47,8 +47,8 @@ export default function DashboardInsights() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+      <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
+        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
             <Icon icon="tabler:bulb" className="text-amber-500 text-xl" />
             Tips định giá & bán xe
@@ -63,7 +63,7 @@ export default function DashboardInsights() {
           </ul>
         </div>
 
-        <div className="bg-gradient-to-br from-violet-50 to-blue-50 rounded-2xl border border-violet-100 p-6">
+        <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-blue-50 p-4 sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
             <Icon icon="tabler:message-chatbot" className="text-violet-600 text-xl" />
             Gợi ý câu hỏi cho Chat AI

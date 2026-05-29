@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        try {
         const email = credentials?.email?.trim();
         const password = credentials?.password;
 
@@ -45,6 +46,10 @@ export const authOptions: NextAuthOptions = {
           name,
           email: data.user.email ?? email,
         };
+        } catch (err) {
+          if (err instanceof Error) throw err;
+          throw new Error("Không thể đăng nhập. Kiểm tra cấu hình Supabase trong .env");
+        }
       },
     }),
   ],

@@ -9,6 +9,14 @@ import { useWallet } from '@/app/Providers'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import ExpertChatWidget from '@/components/Support/ExpertChatWidget'
+import VehicleDetectConfirmModal from '@/components/Home/VehicleDetectConfirmModal'
+import type { VehicleDetectResponse } from '@/lib/vehicle-recognition'
+import { mapColorToCatalog } from '@/lib/vehicle-recognition'
+import {
+  findBrand,
+  findModel,
+  findVersion,
+} from '@/lib/vehicle-catalog-match'
 
 interface Brand { id: string; name: string; models: Model[] }
 interface Model { id: string; name: string; years: YearEntry[] }
@@ -45,49 +53,17 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   const [loadingPlans, setLoadingPlans] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<'monthly' | 'yearly'>('yearly')
   const [showImageModal, setShowImageModal] = useState(false)
-  const [imageFiles, setImageFiles] = useState<(File | null)[]>([null, null, null, null, null, null])
-  const [currentStep, setCurrentStep] = useState(0)
-  const [showImageResult, setShowImageResult] = useState(false)
-  const [showImageLoading, setShowImageLoading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [showImageDetectConfirm, setShowImageDetectConfirm] = useState(false)
+  const [aiDetection, setAiDetection] = useState<VehicleDetectResponse | null>(null)
+  const [imageDetectLoading, setImageDetectLoading] = useState(false)
+  const [skipCascadeReset, setSkipCascadeReset] = useState(false)
   const [showProRequiredModal, setShowProRequiredModal] = useState(false)
   const [proModalMessage, setProModalMessage] = useState('')
 
   const { isPro, canUseValuation, consumeValuationUse, remainingFreeValuations, syncFreeUsageForUser } = useWallet()
   const { data: session } = useSession()
   const [businessAccessForCurrentResult, setBusinessAccessForCurrentResult] = useState(false)
-  const imageSteps = [
-    {
-      label: 'Ảnh 1: Đít xe',
-      description: 'Chụp rõ phần đuôi xe để nhận diện hãng và dòng xe.',
-      example: '/images/car/duoixe.png',
-    },
-    {
-      label: 'Ảnh 2: Mặt trước vô lăng',
-      description: 'Chụp màn hình đồng hồ công tơ mét để lấy số km đã đi.',
-      example: '/images/car/anh_2.png',
-    },
-    {
-      label: 'Ảnh 3: Góc chéo trước xe',
-      description: 'Chụp góc chéo phía trước để nhận diện tổng thể.',
-      example: '/images/car/anh3.png',
-    },
-    {
-      label: 'Ảnh 4: Góc chéo sau xe',
-      description: 'Chụp góc chéo phía sau để nhận diện tổng thể.',
-      example: '/images/car/anh4.png',
-    },
-    {
-      label: 'Ảnh 5: Nội thất',
-      description: 'Chụp nội thất xe, tập trung vào các chi tiết quan trọng.',
-      example: '/images/car/nh5.png',
-    },
-    {
-      label: 'Ảnh 6: Vết xước, hư hại',
-      description: 'Chụp rõ các vết xước, móp, hư hại nếu có.',
-      example: '/images/car/anh6.png',
-    },
-  ]
-
   const proValuation = useMemo(() => {
     const plain = explanation
       .replace(/\r/g, '\n')
@@ -174,64 +150,60 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   }, [selectedBrand, selectedModel, selectedYear, selectedVersion, selectedColor, mileage])
 
   useEffect(() => {
-    if (selectedBrand) {
-      const brand = brands.find((b) => b.id === selectedBrand)
-      setModels(brand ? brand.models : [])
-      setSelectedModel('')
-      setYears([])
-      setVersions([])
-      setColors([])
-      setSelectedYear('')
-      setSelectedVersion('')
-      setSelectedColor('')
-      setPrice(null)
-      setPriceLow(null)
-      setPriceHigh(null)
-      setExplanation('')
-    }
-  }, [selectedBrand, brands])
+    if (skipCascadeReset || !selectedBrand) return
+    const brand = brands.find((b) => b.id === selectedBrand)
+    setModels(brand ? brand.models : [])
+    setSelectedModel('')
+    setYears([])
+    setVersions([])
+    setColors([])
+    setSelectedYear('')
+    setSelectedVersion('')
+    setSelectedColor('')
+    setPrice(null)
+    setPriceLow(null)
+    setPriceHigh(null)
+    setExplanation('')
+  }, [selectedBrand, brands, skipCascadeReset])
 
   useEffect(() => {
-    if (selectedModel) {
-      const model = models.find((m) => m.id === selectedModel)
-      setYears(model ? model.years : [])
-      setSelectedYear('')
-      setVersions([])
-      setColors([])
-      setSelectedVersion('')
-      setSelectedColor('')
-      setPrice(null)
-      setPriceLow(null)
-      setPriceHigh(null)
-      setExplanation('')
-    }
-  }, [selectedModel, models])
+    if (skipCascadeReset || !selectedModel) return
+    const model = models.find((m) => m.id === selectedModel)
+    setYears(model ? model.years : [])
+    setSelectedYear('')
+    setVersions([])
+    setColors([])
+    setSelectedVersion('')
+    setSelectedColor('')
+    setPrice(null)
+    setPriceLow(null)
+    setPriceHigh(null)
+    setExplanation('')
+  }, [selectedModel, models, skipCascadeReset])
 
   useEffect(() => {
-    if (selectedYear) {
-      const yearEnt = years.find((y) => y.year.toString() === selectedYear)
-      setVersions(yearEnt ? yearEnt.versions : [])
-      setSelectedVersion('')
-      setColors([])
-      setSelectedColor('')
-      setPrice(null)
-      setPriceLow(null)
-      setPriceHigh(null)
-      setExplanation('')
-    }
-  }, [selectedYear, years])
+    if (skipCascadeReset || !selectedYear) return
+    const yearEnt = years.find((y) => y.year.toString() === selectedYear)
+    setVersions(yearEnt ? yearEnt.versions : [])
+    setSelectedVersion('')
+    setColors([])
+    setSelectedColor('')
+    setPrice(null)
+    setPriceLow(null)
+    setPriceHigh(null)
+    setExplanation('')
+  }, [selectedYear, years, skipCascadeReset])
 
   useEffect(() => {
-    if (selectedVersion) {
-      const ver = versions.find((v) => v.name === selectedVersion)
-      setColors(ver ? ver.colors : [])
-      setSelectedColor('')
-      setPrice(null)
-      setPriceLow(null)
-      setPriceHigh(null)
-      setExplanation('')
-    }
-  }, [selectedVersion, versions])
+    if (skipCascadeReset || !selectedVersion) return
+    const ver = versions.find((v) => v.name === selectedVersion)
+    setColors(ver ? ver.colors : [])
+    setSelectedColor('')
+    setPrice(null)
+    setPriceLow(null)
+    setPriceHigh(null)
+    setExplanation('')
+  }, [selectedVersion, versions, skipCascadeReset])
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -253,7 +225,121 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   const getBrandName = () => brands.find((b) => b.id === selectedBrand)?.name ?? selectedBrand
   const getModelName = () => models.find((m) => m.id === selectedModel)?.name ?? selectedModel
 
-  const calcPrice = async (): Promise<boolean> => {
+  const runVehicleDetect = async () => {
+    if (!imageFile) {
+      toast.error('Vui lòng tải 1 ảnh xe (hoặc ảnh liên quan đến xe).')
+      return
+    }
+    setImageDetectLoading(true)
+    setShowImageModal(false)
+    try {
+      const form = new FormData()
+      form.append('image_0', imageFile)
+      form.append('step_labels', 'Ảnh xe / liên quan xe')
+      const res = await fetch('/api/vehicle-detect', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'Nhận diện xe thất bại')
+        setShowImageModal(true)
+        return
+      }
+      setAiDetection(data as VehicleDetectResponse)
+      setShowImageDetectConfirm(true)
+    } catch {
+      toast.error('Không kết nối được AI nhận diện')
+      setShowImageModal(true)
+    } finally {
+      setImageDetectLoading(false)
+    }
+  }
+
+  type ValuationPayload = {
+    brandName: string
+    modelName: string
+    year: number
+    color: string
+    mileage: number
+    version?: string
+    brandId?: string
+    modelId?: string
+  }
+
+  const syncFormFromAi = (payload: ValuationPayload) => {
+    if (!payload.brandId || !payload.modelId) return
+    const brand = brands.find((b) => b.id === payload.brandId)
+    const model = brand?.models.find((m) => m.id === payload.modelId)
+    if (!brand || !model) return
+
+    setSkipCascadeReset(true)
+    setModels(brand.models)
+    setSelectedBrand(brand.id)
+    setSelectedModel(model.id)
+    setYears(model.years)
+    const yearEnt = model.years.find((y) => y.year === payload.year)
+    if (yearEnt) {
+      setVersions(yearEnt.versions)
+      setSelectedYear(String(payload.year))
+      const ver = findVersion(yearEnt.versions, payload.version)
+      if (ver) {
+        setSelectedVersion(ver.name)
+        setColors(ver.colors)
+        if (payload.color) setSelectedColor(payload.color)
+      }
+    }
+    if (payload.mileage > 0) setMileage(String(payload.mileage))
+    setTimeout(() => setSkipCascadeReset(false), 0)
+  }
+
+  const confirmAndValuateFromAi = async (payload: {
+    brand: string
+    model: string
+    year: number
+    version?: string
+    color?: string
+    mileage?: number
+  }) => {
+    const brand = findBrand(brands, payload.brand)
+    const model = brand ? findModel(brand, payload.model) : null
+    const brandName = brand?.name ?? payload.brand
+    const modelName = model?.name ?? payload.model
+
+    let color = payload.color?.trim() || ''
+    if (brand && model) {
+      const yearEnt = model.years.find((y) => y.year === payload.year)
+      const ver = yearEnt ? findVersion(yearEnt.versions, payload.version) : null
+      if (ver) {
+        const mapped = mapColorToCatalog(payload.color ?? '', ver.colors)
+        color = mapped || ver.colors[0] || color
+      }
+    }
+    if (!color) color = 'Không rõ'
+
+    const mileageNum = payload.mileage ?? 0
+    const valuationPayload: ValuationPayload = {
+      brandName,
+      modelName,
+      year: payload.year,
+      color,
+      mileage: mileageNum,
+      version: payload.version,
+      brandId: brand?.id,
+      modelId: model?.id,
+    }
+
+    setShowImageDetectConfirm(false)
+    syncFormFromAi(valuationPayload)
+    const ok = await calcPrice(valuationPayload)
+    if (!ok) {
+      setShowImageDetectConfirm(true)
+      return
+    }
+    toast.success('Định giá từ ảnh thành công')
+    document
+      .querySelector('[data-valuation-form-root]')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const calcPrice = async (override?: ValuationPayload): Promise<boolean> => {
     if (!session) {
       toast.error('Vui lòng đăng nhập để sử dụng tính năng định giá.')
       if (!isDashboard && typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
@@ -275,6 +361,25 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
     const unlockedForThisRun = isDashboard || isPro || canUseValuation()
 
+    const brandName = override?.brandName ?? getBrandName()
+    const modelName = override?.modelName ?? getModelName()
+    const year = override?.year ?? parseInt(selectedYear, 10)
+    const color = override?.color ?? selectedColor
+    const mileageKm =
+      override?.mileage ??
+      (parseInt(String(mileage).replace(/\D/g, ''), 10) || 0)
+    const version = override?.version ?? selectedVersion
+
+    if (!override) {
+      if (!selectedColor || !mileage) {
+        toast.error('Vui lòng chọn màu và nhập số km.')
+        return false
+      }
+    } else if (!brandName || !modelName || !year) {
+      toast.error('Thiếu thông tin xe từ AI để định giá.')
+      return false
+    }
+
     setValuationLoading(true)
     try {
       if (!isDashboard && !isPro) {
@@ -285,11 +390,11 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          brand: getBrandName(),
-          model: getModelName(),
-          year: parseInt(selectedYear, 10),
-          color: selectedColor,
-          mileage: parseInt(String(mileage).replace(/\D/g, ''), 10) || 0,
+          brand: brandName,
+          model: modelName,
+          year,
+          color,
+          mileage: mileageKm,
         }),
       })
       const resData = await res.json()
@@ -306,12 +411,12 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                brand: getBrandName(),
-                model: getModelName(),
-                year: parseInt(selectedYear, 10) || null,
-                version: selectedVersion || null,
-                color: selectedColor || null,
-                mileage: parseInt(String(mileage).replace(/\D/g, ''), 10) || 0,
+                brand: brandName,
+                model: modelName,
+                year: year || null,
+                version: version || null,
+                color: color || null,
+                mileage: mileageKm,
                 price: resData.price ?? null,
                 priceLow: resData.priceLow ?? null,
                 priceHigh: resData.priceHigh ?? null,
@@ -369,9 +474,14 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
     : 'relative z-10 -mt-16 lg:-mt-24 pb-20'
 
   return (
-    <section id={isDashboard ? undefined : 'valuation'} className={sectionClass}>
+    <section
+      id={isDashboard ? undefined : 'valuation'}
+      data-valuation-form-root
+      className={sectionClass}>
       <div className={isDashboard ? '' : 'container'}>
-        <div className='bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-blue-50/60 p-8 lg:p-12 backdrop-blur-3xl overflow-hidden relative'>
+        <div className={`bg-white rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-sm ${
+          isDashboard ? 'p-4 sm:p-6 lg:p-8' : 'p-6 sm:p-8 lg:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-blue-50/60'
+        }`}>
           {/* subtle accent blob inside the card */}
           <div className='absolute -top-24 -right-24 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl' />
           {!isDashboard && (
@@ -380,7 +490,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
             </h2>
           )}
           {isDashboard && (
-            <div className='mb-8 flex flex-wrap gap-2 relative z-10'>
+            <div className='relative z-10 mb-4 flex flex-wrap gap-2 sm:mb-6'>
               <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200'>
                 <Icon icon="tabler:infinity" /> Không giới hạn lượt
               </span>
@@ -392,7 +502,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
               </span>
             </div>
           )}
-          <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10'>
+          <div className='grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10 relative z-10'>
             <div className='lg:col-span-7 space-y-5'>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="relative">
@@ -507,6 +617,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                       return
                     }
 
+                    setImageFile(null)
                     setShowImageModal(true)
                   }}
                 >
@@ -881,9 +992,9 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
           </div>
         </div>
       )}
-      {/* Modal upload ảnh định giá */}
+      {/* Modal upload 1 ảnh xe */}
       {showImageModal && (
-        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
+        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
           <div className='bg-white rounded-2xl shadow-2xl max-w-md w-full p-0 relative flex flex-col items-center border border-blue-100'>
             <button
               onClick={() => setShowImageModal(false)}
@@ -892,139 +1003,73 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
               style={{ lineHeight: '1' }}
             >×</button>
             <div className='w-full flex flex-col items-center pt-6 pb-2 px-6 border-b border-blue-50 bg-gradient-to-r from-blue-50 to-white rounded-t-2xl'>
-              <h2 className='text-2xl font-extrabold text-primary mb-1 tracking-wide text-center drop-shadow'>Định giá bằng hình ảnh</h2>
-              <span className='font-semibold text-base text-blue-900'>{imageSteps[currentStep].label}</span>
-              <div className='text-gray-600 text-sm mt-1 mb-2 text-center'>{imageSteps[currentStep].description}</div>
+              <h2 className='text-2xl font-extrabold text-primary mb-1 tracking-wide text-center'>Nhận diện xe bằng ảnh</h2>
+              <p className='text-gray-600 text-sm mt-1 mb-2 text-center'>
+                Tải <strong>1 ảnh</strong> toàn xe, đuôi xe, góc chéo, nội thất hoặc biển số — AI sẽ gợi ý hãng, dòng, năm.
+              </p>
             </div>
             <div className='flex flex-col items-center w-full px-6 py-4'>
               <div className='w-full flex justify-center mb-3'>
                 <img
-                  src={imageFiles[currentStep] ? URL.createObjectURL(imageFiles[currentStep] as File) : imageSteps[currentStep].example}
-                  alt={imageSteps[currentStep].label}
-                  className='w-full max-w-xs h-44 object-contain rounded-xl border border-blue-100 shadow bg-gray-50 transition-all duration-200'
-                  style={{ background: '#f3f4f6' }}
+                  src={imageFile ? URL.createObjectURL(imageFile) : '/images/car/anh3.png'}
+                  alt='Ảnh xe'
+                  className='w-full max-w-xs h-48 object-contain rounded-xl border border-blue-100 shadow bg-gray-50'
                 />
               </div>
               <input
                 id='valuation-image-upload-input'
                 type='file'
                 accept='image/*'
+                capture='environment'
                 style={{ display: 'none' }}
-                onChange={e => {
-                  const files = [...imageFiles]
-                  files[currentStep] = e.target.files?.[0] || null
-                  setImageFiles(files)
-                }}
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
               />
               <button
-                className='bg-blue-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-blue-700 transition mb-2 w-full mt-2'
+                className='bg-blue-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-blue-700 transition mb-2 w-full'
                 onClick={() => document.getElementById('valuation-image-upload-input')?.click()}
                 type='button'
               >
-                Tải ảnh lên
+                Chọn ảnh xe
               </button>
-              {imageFiles[currentStep] && (
-                <div className='text-green-600 text-sm mt-1 font-medium'>Đã chọn ảnh: {imageFiles[currentStep]?.name}</div>
+              {imageFile && (
+                <div className='text-green-600 text-sm mt-1 font-medium truncate max-w-full px-2'>
+                  Đã chọn: {imageFile.name}
+                </div>
               )}
-              <div className='flex justify-between items-center w-full mt-5 gap-2'>
-                <button
-                  className='px-6 py-2 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold border border-gray-200 hover:bg-gray-200 transition disabled:opacity-50'
-                  onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
-                  disabled={currentStep === 0}
-                >Trước</button>
-                {currentStep < 5 ? (
-                  <button
-                    className='px-6 py-2 rounded-lg bg-primary text-white text-base font-semibold shadow hover:bg-primary/90 transition disabled:opacity-50'
-                    onClick={() => setCurrentStep(s => Math.min(5, s + 1))}
-                    disabled={!imageFiles[currentStep]}
-                  >Tiếp</button>
-                ) : (
-                  <button
-                    className='px-6 py-2 rounded-lg bg-blue-500 text-white text-base font-semibold shadow hover:bg-blue-600 transition disabled:opacity-50'
-                    onClick={async () => {
-                      setShowImageModal(false)
-                      setShowImageLoading(true)
-                      const ok = await calcPrice()
-                      setShowImageLoading(false)
-                      if (ok) {
-                        setShowImageResult(false)
-                        setShowPackages(false)
-                        setShowModal(true)
-                      }
-                    }}
-                    disabled={imageFiles.some(f => !f)}
-                  >Định giá ngay</button>
-                )}
-              </div>
-              <div className='mt-4 text-center text-base text-gray-400 w-full'>Bước {currentStep + 1}/6</div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Modal kết quả định giá bằng hình ảnh (demo) */}
-      {showImageResult && (
-        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg max-w-xl w-full p-8 relative shadow-2xl'>
-            <button
-              onClick={() => setShowImageResult(false)}
-              className='absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl'
-              aria-label='Đóng'
-            >✕</button>
-            <h2 className='text-2xl font-bold text-primary mb-4 text-center'>Kết quả định giá bằng hình ảnh</h2>
-            <div className='mb-4 text-left text-gray-700'>
-              <div className='mb-2 flex flex-wrap gap-4'>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Hãng xe: <b>Toyota</b></div>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Dòng xe: <b>Vios</b></div>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Năm sản xuất: <b>2019</b></div>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Màu xe: <b>Bạc</b></div>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Số km: <b>65,000 km</b></div>
-                <div className='bg-blue-50 rounded-lg px-4 py-2'>Tình trạng: <b>Có 1 vết xước nhỏ ở cản sau, nội thất sạch sẽ</b></div>
-              </div>
-              <div className='text-lg font-semibold text-primary mt-4 mb-2'>Giá tham khảo: <span className='text-2xl font-bold'>380 – 400 triệu</span></div>
-              <div className='text-base text-gray-600 mb-2'>
-                <div className='bg-blue-50 border-l-4 border-primary p-4 rounded-lg shadow-sm leading-relaxed whitespace-pre-line'>
-                  <span className='block font-semibold text-primary mb-1'>Lý do định giá:</span>
-                  <span className='text-gray-700'>
-                    Xe <b>Toyota Vios 2019</b> màu <b>bạc</b>, số km đã đi <b>65,000 km</b>, có <b>1 vết xước nhỏ ở cản sau</b> nhưng nội thất còn mới, máy móc vận hành tốt.<br />
-                    Giá tham khảo dựa trên các xe cùng đời, cùng tình trạng trên thị trường hiện tại.
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className='grid grid-cols-3 gap-2 mb-2'>
-              {imageFiles.map((file, idx) => (
-                <div key={idx} className='flex flex-col items-center'>
-                  <div className='text-xs text-gray-500 mb-1'>{imageSteps[idx].label}</div>
-                  {file ? (
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Ảnh ${idx + 1}`}
-                      className='w-20 h-12 object-cover rounded border shadow'
-                    />
-                  ) : (
-                    <div className='w-20 h-12 bg-gray-100 rounded border flex items-center justify-center text-gray-400'>No image</div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className='mt-4 text-center'>
               <button
-                className='bg-primary text-white px-6 py-2 rounded-full hover:bg-primary/90 transition'
-                onClick={() => setShowImageResult(false)}
-              >Đóng</button>
+                className='mt-5 w-full rounded-xl bg-primary px-6 py-3 text-base font-bold text-white shadow hover:opacity-90 transition disabled:opacity-50'
+                onClick={() => void runVehicleDetect()}
+                disabled={!imageFile || imageDetectLoading}
+              >
+                {imageDetectLoading ? 'Đang nhận diện...' : 'Nhận diện xe (AI)'}
+              </button>
+              <p className='mt-3 text-center text-xs text-gray-400'>
+                AI nhận diện → chọn năm → định giá ngay, xem kết quả bên phải.
+              </p>
             </div>
           </div>
         </div>
       )}
-      {/* Modal loading AI scan ảnh */}
-      {showImageLoading && (
+      <VehicleDetectConfirmModal
+        open={showImageDetectConfirm}
+        detection={aiDetection}
+        onClose={() => {
+          setShowImageDetectConfirm(false)
+          setShowImageModal(true)
+        }}
+        onConfirm={confirmAndValuateFromAi}
+        confirmLoading={valuationLoading}
+      />
+
+      {/* Modal loading AI nhận diện ảnh */}
+      {imageDetectLoading && (
         <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
           <div className='bg-white rounded-lg max-w-md w-full p-8 relative shadow-2xl flex flex-col items-center'>
             <h2 className='text-2xl font-bold text-primary mb-4 text-center'>Đang phân tích bằng AI...</h2>
             <div className='relative w-50 h-33 mb-4'>
-              {imageFiles[0] ? (
+              {imageFile ? (
                 <img
-                  src={URL.createObjectURL(imageFiles[0] as File)}
+                  src={URL.createObjectURL(imageFile)}
                   alt='Đang phân tích'
                   className='w-56 h-36 object-contain rounded border shadow bg-gray-100'
                 />
@@ -1054,8 +1099,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                 }
               `}</style>
             </div>
-            <div className='text-lg text-gray-700 font-semibold mb-2'>Hệ thống đang phân tích ảnh xe của bạn...</div>
-            <div className='text-base text-gray-500'>Vui lòng chờ trong giây lát</div>
+            <div className='text-lg text-gray-700 font-semibold mb-2'>AI đang nhận diện hãng, dòng, năm xe...</div>
+            <div className='text-base text-gray-500'>Phân tích 1 ảnh · không định giá ở bước này</div>
           </div>
         </div>
       )}

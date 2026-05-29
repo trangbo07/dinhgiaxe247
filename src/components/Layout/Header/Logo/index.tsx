@@ -10,12 +10,12 @@ type LogoProps = {
 const Logo: React.FC<LogoProps> = ({ href = '/', linked = true }) => {
   const image = (
     <Image
-      src='/images/logo/logo_Valucar.png'
-      alt='ValuCar'
+      src="/images/logo/logo_Valucar.svg"
+      alt="ValuCar"
       width={160}
       height={50}
       style={{ width: '105px', height: 'auto' }}
-      quality={100}
+      priority
     />
   )
 

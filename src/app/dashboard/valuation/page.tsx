@@ -2,11 +2,10 @@ import ValuationForm from '@/components/Home/ValuationForm'
 
 export default function DashboardValuationPage() {
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-midnight_text">Định giá xe</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Không giới hạn lượt · Kết quả tự động lưu Supabase · Chat AI không giới hạn
+    <div className="space-y-3 sm:space-y-4">
+      <div className="lg:hidden">
+        <p className="text-xs text-slate-500">
+          Vuốt form · Kết quả bên dưới · Chat góc phải (trên thanh menu)
         </p>
       </div>
       <ValuationForm variant="dashboard" />

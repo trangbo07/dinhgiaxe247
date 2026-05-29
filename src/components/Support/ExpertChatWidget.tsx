@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
 
@@ -53,8 +54,13 @@ export default function ExpertChatWidget(props: {
   }
 }) {
   const { enabled, price, priceLow, priceHigh, vehicle } = props
+  const pathname = usePathname()
+  const onDashboard = pathname?.startsWith('/dashboard') ?? false
 
   const basePrice = useMemo(() => computeBasePrice(price, priceLow, priceHigh), [price, priceLow, priceHigh])
+  const anchorBottom = onDashboard
+    ? 'bottom-[5.5rem] sm:bottom-6'
+    : 'bottom-4 sm:bottom-6'
 
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
@@ -197,23 +203,26 @@ export default function ExpertChatWidget(props: {
   if (!enabled) return null
 
   return (
-    <div className='fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[120]'>
+    <div className={`fixed right-3 z-[120] sm:right-6 ${anchorBottom}`}>
       {!open ? (
         <button
           type='button'
           onClick={() => setOpen(true)}
-          className='group flex items-center gap-3 rounded-full bg-gradient-to-r from-primary to-blue-600 text-white px-5 py-3 shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] transition'
+          className='group flex min-h-[48px] items-center gap-2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-4 py-3 text-white shadow-xl shadow-primary/20 transition hover:scale-[1.02] hover:shadow-2xl sm:gap-3 sm:px-5'
           aria-label='Mở hỗ trợ chuyên sâu'
         >
-          <span className='relative flex h-3 w-3'>
+          <span className='relative flex h-3 w-3 shrink-0'>
             <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
-            <span className='relative inline-flex rounded-full h-3 w-3 bg-emerald-500'></span>
+            <span className='relative inline-flex h-3 w-3 rounded-full bg-emerald-500'></span>
           </span>
-          <Icon icon='tabler:messages' className='text-xl' />
-          <span className='font-bold'>Hỗ trợ chuyên sâu 24/7</span>
+          <Icon icon='tabler:messages' className='text-xl shrink-0' />
+          <span className='text-sm font-bold sm:text-base'>
+            <span className='sm:hidden'>Chat AI</span>
+            <span className='hidden sm:inline'>Hỗ trợ chuyên sâu 24/7</span>
+          </span>
         </button>
       ) : (
-        <div className='fixed bottom-4 left-4 right-4 sm:static sm:bottom-auto sm:left-auto sm:right-auto'>
+        <div className={`fixed left-3 right-3 sm:static sm:left-auto sm:right-auto ${onDashboard ? 'bottom-[5.5rem] sm:bottom-auto' : 'bottom-4 sm:bottom-auto'}`}>
           <div className='w-full sm:w-[420px] h-[72vh] sm:h-[70vh] max-h-[640px] rounded-2xl bg-white border border-blue-100 shadow-2xl overflow-hidden flex flex-col'>
             <div className='px-4 py-3 bg-gradient-to-r from-primary to-blue-600 text-white flex items-center justify-between'>
               <div className='flex items-center gap-3'>

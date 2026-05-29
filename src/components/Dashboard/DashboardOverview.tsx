@@ -71,8 +71,8 @@ export default function DashboardOverview() {
     },
     {
       icon: 'tabler:photo-scan',
-      title: 'Định giá 6 ảnh',
-      desc: 'Workflow chuẩn showroom: đuôi, km, góc, nội thất, xước.',
+      title: 'Định giá bằng ảnh',
+      desc: 'Tải 1 ảnh xe — AI nhận diện hãng, dòng, năm rồi định giá.',
       color: 'from-rose-500 to-pink-600',
     },
     {
@@ -84,39 +84,38 @@ export default function DashboardOverview() {
   ]
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-2xl bg-gradient-to-r from-primary to-blue-600 p-6 lg:p-8 text-white shadow-xl">
-        <p className="text-blue-100 text-sm font-medium">Xin chào</p>
-        <h2 className="text-2xl lg:text-3xl font-black mt-1">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="rounded-2xl bg-gradient-to-r from-primary to-blue-600 p-5 text-white shadow-xl sm:p-6 lg:p-8">
+        <p className="text-sm font-medium text-blue-100">Xin chào</p>
+        <h2 className="mt-1 text-xl font-black sm:text-2xl lg:text-3xl">
           {session?.user?.name ?? 'Doanh nghiệp'}
         </h2>
-        <p className="mt-2 text-blue-50/90 max-w-2xl text-sm lg:text-base">
-          Đây là không gian làm việc của bạn — không còn giao diện landing. Bắt đầu
-          định giá hoặc xem lịch sử đã lưu bên dưới.
+        <p className="mt-2 max-w-2xl text-sm text-blue-50/90 lg:text-base">
+          Bắt đầu định giá, xem lead khách hoặc lịch sử đã lưu.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <Link
             href="/dashboard/valuation"
-            className="inline-flex items-center gap-2 bg-white text-primary px-5 py-3 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform">
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-primary sm:flex-none sm:justify-start">
             <Icon icon="tabler:car" className="text-xl" />
             Định giá ngay
           </Link>
           <Link
             href="/dashboard/leads"
-            className="inline-flex items-center gap-2 bg-white/15 border border-white/30 px-5 py-3 rounded-xl font-bold text-sm hover:bg-white/25 transition-colors">
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-sm font-bold hover:bg-white/25 sm:flex-none sm:justify-start">
             <Icon icon="tabler:users" className="text-xl" />
-            Khách website ({guestLeads})
+            Khách ({guestLeads})
           </Link>
           <Link
             href="/dashboard/history"
-            className="inline-flex items-center gap-2 bg-white/15 border border-white/30 px-5 py-3 rounded-xl font-bold text-sm hover:bg-white/25 transition-colors">
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-sm font-bold hover:bg-white/25 sm:flex-none sm:justify-start">
             <Icon icon="tabler:history" className="text-xl" />
-            Lịch sử DN ({items.length})
+            Lịch sử ({items.length})
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
           { label: 'Lead khách', value: guestLeads, icon: 'tabler:users' },
           { label: 'Định giá DN', value: items.length, icon: 'tabler:database' },
@@ -138,7 +137,7 @@ export default function DashboardOverview() {
         <h3 className="text-lg font-bold text-midnight_text mb-4">
           Tính năng trong tài khoản của bạn
         </h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <div
               key={f.title}

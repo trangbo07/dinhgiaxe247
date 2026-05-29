@@ -141,27 +141,27 @@ export default function DashboardSettings() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-midnight_text">Cài đặt</h2>
+        <h2 className="text-xl font-bold text-midnight_text sm:text-2xl">Cài đặt</h2>
         <p className="text-sm text-slate-500 mt-1">
           Quản lý hồ sơ doanh nghiệp, bảo mật và thông báo trên ValuCar.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+      <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
               activeTab === t.id
                 ? 'bg-primary text-white shadow-md'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                : 'bg-white text-slate-600 shadow-sm'
             }`}>
             <Icon icon={t.icon} className="text-lg" />
-            {t.label}
+            <span className="whitespace-nowrap">{t.label}</span>
           </button>
         ))}
       </div>
@@ -169,7 +169,7 @@ export default function DashboardSettings() {
       {activeTab === 'profile' && (
         <form
           onSubmit={handleProfileSubmit}
-          className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-5">
+          className="space-y-5 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
             <Icon icon="tabler:building-store" className="text-primary text-xl" />
             Thông tin doanh nghiệp
@@ -267,7 +267,7 @@ export default function DashboardSettings() {
 
       {activeTab === 'account' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
             <h3 className="font-bold text-midnight_text mb-4 flex items-center gap-2">
               <Icon icon="tabler:mail" className="text-primary text-xl" />
               Email đăng nhập
@@ -290,7 +290,7 @@ export default function DashboardSettings() {
 
           <form
             onSubmit={handlePasswordSubmit}
-            className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
+            className="space-y-4 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
             <h3 className="font-bold text-midnight_text flex items-center gap-2">
               <Icon icon="tabler:lock" className="text-primary text-xl" />
               Đổi mật khẩu
@@ -345,7 +345,7 @@ export default function DashboardSettings() {
       {activeTab === 'notifications' && (
         <form
           onSubmit={handleNotificationsSubmit}
-          className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-5">
+          className="space-y-5 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
             <Icon icon="tabler:bell" className="text-primary text-xl" />
             Thông báo
@@ -399,7 +399,7 @@ export default function DashboardSettings() {
       )}
 
       {activeTab === 'preferences' && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
             <Icon icon="tabler:adjustments" className="text-primary text-xl" />
             Tùy chọn hệ thống

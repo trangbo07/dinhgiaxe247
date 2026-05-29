@@ -1,4 +1,5 @@
 'use client'
+
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -9,108 +10,116 @@ import Loader from '@/components/Common/Loader'
 
 type SigninProps = {
   onSwitchToSignUp?: () => void
+  onSuccess?: () => void
 }
 
-const Signin = ({ onSwitchToSignUp }: SigninProps) => {
+const Signin = ({ onSwitchToSignUp, onSuccess }: SigninProps) => {
   const router = useRouter()
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: '',
-    checkboxToggle: false,
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const loginUser = (e: React.FormEvent<HTMLFormElement>) => {
+  const loginUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const email = loginData.email.trim()
-    const password = loginData.password.trim()
-    if (!email || !password) {
+    const emailNorm = email.trim()
+    const passwordNorm = password.trim()
+    if (!emailNorm || !passwordNorm) {
       toast.error('Vui lòng nhập email và mật khẩu')
       return
     }
 
     setLoading(true)
-    signIn('credentials', { email, password, redirect: false })
-      .then((callback) => {
-        if (callback?.error) {
-          toast.error(callback?.error)
-          console.log(callback?.error)
-          setLoading(false)
-          return
-        }
+    try {
+      const result = await signIn('credentials', {
+        email: emailNorm,
+        password: passwordNorm,
+        redirect: false,
+      })
 
-        if (callback?.ok && !callback?.error) {
-          toast.success('Đăng nhập thành công')
-          setLoading(false)
-          router.push('/dashboard')
-          router.refresh()
-        }
-      })
-      .catch((err) => {
-        setLoading(false)
-        console.log(err.message)
-        toast.error(err.message)
-      })
+      if (result?.error) {
+        toast.error(result.error)
+        return
+      }
+
+      if (result?.ok) {
+        toast.success('Đăng nhập thành công')
+        onSuccess?.()
+        router.push('/dashboard')
+        router.refresh()
+        return
+      }
+
+      toast.error('Đăng nhập thất bại. Vui lòng thử lại.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Lỗi đăng nhập')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <>
-      <div className='mb-6 text-center mx-auto inline-block max-w-[160px]'>
-        <Logo />
+      <div className="mx-auto mb-6 inline-block max-w-[160px] text-center">
+        <Logo linked={false} />
       </div>
-      
-      <h3 className="text-2xl font-bold text-midnight_text mb-2">Đăng Nhập Doanh Nghiệp</h3>
-      <p className="text-sm text-gray-500 mb-8">Dùng email doanh nghiệp đã đăng ký trên ValuCar</p>
-      <form onSubmit={loginUser}>
-        <div className='mb-5'>
+
+      <h3 className="mb-2 text-2xl font-bold text-midnight_text">Đăng Nhập Doanh Nghiệp</h3>
+      <p className="mb-8 text-sm text-gray-500">Dùng email doanh nghiệp đã đăng ký trên ValuCar</p>
+
+      <form onSubmit={loginUser} className="text-left">
+        <div className="mb-4">
+          <label className="mb-1.5 block text-sm font-semibold text-midnight_text">Email</label>
           <input
-            type='email'
-            placeholder='Email doanh nghiệp'
-            autoComplete='email'
+            type="email"
+            placeholder="email@congty.com"
+            autoComplete="email"
             required
-            onChange={(e) =>
-              setLoginData({ ...loginData, email: e.target.value })
-            }
-            className='w-full rounded-xl border border-gray-200 bg-gray-50 focus:bg-white px-5 py-3.5 text-base text-dark outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10 text-gray-800'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-5 py-3.5 text-base text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 disabled:opacity-60"
           />
         </div>
-        <div className='mb-6'>
+        <div className="mb-6">
+          <label className="mb-1.5 block text-sm font-semibold text-midnight_text">Mật khẩu</label>
           <input
-            type='password'
-            placeholder='Mật khẩu'
-            onChange={(e) =>
-              setLoginData({ ...loginData, password: e.target.value })
-            }
-            className='w-full rounded-xl border border-gray-200 bg-gray-50 focus:bg-white px-5 py-3.5 text-base text-dark outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10 text-gray-800'
+            type="password"
+            placeholder="Mật khẩu"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-5 py-3.5 text-base text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 disabled:opacity-60"
           />
         </div>
-        <div className='mb-8'>
-          <button
-            type='submit'
-            className='w-full py-3.5 rounded-xl text-lg font-bold transition-all duration-300 ease-in-out text-white bg-gradient-to-r from-primary to-blue-600 shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[1.02] flex justify-center items-center gap-2'>
-            Đăng Nhập {loading && <Loader />}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-blue-600 py-3.5 text-lg font-bold text-white shadow-lg shadow-primary/30 transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70">
+          {loading ? (
+            <>
+              Đang xử lý <Loader />
+            </>
+          ) : (
+            'Đăng nhập'
+          )}
+        </button>
       </form>
 
-      <Link
-        href='/'
-        className='mb-4 inline-block text-sm font-medium text-gray-500 hover:text-primary transition-colors'>
-        Quên mật khẩu?
-      </Link>
-      <p className='text-gray-500 text-sm'>
+      <p className="mt-6 text-center text-sm text-gray-500">
         Chưa có tài khoản?{' '}
         {onSwitchToSignUp ? (
           <button
-            type='button'
+            type="button"
             onClick={onSwitchToSignUp}
-            className='text-primary font-bold hover:underline'>
-            Đăng ký Doanh nghiệp
+            className="font-bold text-primary hover:underline">
+            Đăng ký doanh nghiệp
           </button>
         ) : (
-          <Link href='/signup' className='text-primary font-bold hover:underline'>
-            Đăng ký Doanh nghiệp
+          <Link href="/signup" className="font-bold text-primary hover:underline">
+            Đăng ký doanh nghiệp
           </Link>
         )}
       </p>

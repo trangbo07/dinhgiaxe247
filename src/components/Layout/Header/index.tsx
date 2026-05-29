@@ -40,20 +40,6 @@ const Header: React.FC = () => {
     fetchData()
   }, [])
 
-  // Ensure global modal helpers are always the most up-to-date instance
-  if (typeof window !== 'undefined') {
-    (window as any).openSignInModal = () => {
-      setIsSignUpOpen(false)
-      setIsSignInOpen(true)
-      setNavbarOpen(false)
-    }
-    ;(window as any).openSignUpModal = () => {
-      setIsSignInOpen(false)
-      setIsSignUpOpen(true)
-      setNavbarOpen(false)
-    }
-  }
-
   const openSignInModal = () => {
     setIsSignUpOpen(false)
     setIsSignInOpen(true)
@@ -65,6 +51,32 @@ const Header: React.FC = () => {
     setIsSignUpOpen(true)
     setNavbarOpen(false)
   }
+
+  const closeAuthModals = () => {
+    setIsSignInOpen(false)
+    setIsSignUpOpen(false)
+  }
+
+  useEffect(() => {
+    const w = window as Window & {
+      openSignInModal?: () => void
+      openSignUpModal?: () => void
+    }
+    w.openSignInModal = () => {
+      setIsSignUpOpen(false)
+      setIsSignInOpen(true)
+      setNavbarOpen(false)
+    }
+    w.openSignUpModal = () => {
+      setIsSignInOpen(false)
+      setIsSignUpOpen(true)
+      setNavbarOpen(false)
+    }
+    return () => {
+      delete w.openSignInModal
+      delete w.openSignUpModal
+    }
+  }, [])
 
   const handleScroll = () => {
     setSticky(window.scrollY >= 80)
@@ -116,8 +128,11 @@ const Header: React.FC = () => {
   }, [isSignInOpen, isSignUpOpen, navbarOpen])
 
   return (
+    <>
     <header
-      className={`fixed top-0 z-40 w-full transition-all duration-300 ${
+      className={`fixed top-0 w-full transition-all duration-300 ${
+        navbarOpen ? 'z-[61]' : 'z-40'
+      } ${
         sticky
           ? 'bg-white/95 py-3 shadow-[0_8px_30px_-12px_rgba(0,27,80,0.15)] backdrop-blur-md'
           : 'bg-header/80 py-3 backdrop-blur-sm'
@@ -149,103 +164,67 @@ const Header: React.FC = () => {
               </div>
             ) : (
               <>
-                <Link
-                  href='#'
+                <button
+                  type="button"
                   className='hidden lg:block bg-white text-primary hover:bg-gray-50 px-6 py-2.5 rounded-full font-semibold text-base transition-all shadow-sm'
-                  onClick={(e) => {
-                    e.preventDefault()
-                    openSignInModal()
-                  }}>
+                  onClick={openSignInModal}>
                   Đăng Nhập
-                </Link>
-                {isSignInOpen && (
-                  <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity'>
-                    <div
-                      ref={signInRef}
-                      className='relative mx-auto w-full max-w-md overflow-hidden rounded-3xl px-8 pt-12 pb-8 text-center bg-white shadow-2xl border border-gray-100 transform transition-all'>
-                      <button
-                        onClick={() => setIsSignInOpen(false)}
-                        className='absolute top-0 right-0 mr-8 mt-8 dark:invert hover:cursor-pointer'
-                        aria-label='Close Sign In Modal'>
-                        <Icon
-                          icon='tabler:x'
-                          className='text-gray-400 hover:text-gray-700 text-2xl inline-block me-2'
-                        />
-                      </button>
-                      <Signin
-                        onSwitchToSignUp={() => {
-                          setIsSignInOpen(false)
-                          setIsSignUpOpen(true)
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-                <Link
-                  href='#'
+                </button>
+                <button
+                  type="button"
                   className='hidden lg:block bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 px-6 py-2.5 rounded-full font-semibold text-base shadow-lg shadow-primary/30 transition-all'
-                  onClick={(e) => {
-                    e.preventDefault()
-                    openSignUpModal()
-                  }}>
+                  onClick={openSignUpModal}>
                   Đăng Ký DN
-                </Link>
-                {isSignUpOpen && (
-                  <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity'>
-                    <div
-                      ref={signUpRef}
-                      className='relative mx-auto w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl border border-gray-100 px-8 pt-12 pb-8 text-center'>
-                      <button
-                        onClick={() => setIsSignUpOpen(false)}
-                        className='absolute top-0 right-0 mr-8 mt-8 dark:invert hover:cursor-pointer'
-                        aria-label='Close Sign Up Modal'>
-                        <Icon
-                          icon='tabler:x'
-                          className='text-gray-400 hover:text-gray-700 text-2xl inline-block me-2'
-                        />
-                      </button>
-                      <SignUp
-                        onSwitchToSignIn={openSignInModal}
-                        onSuccess={() => {
-                          setIsSignUpOpen(false)
-                          window.location.href = '/signin'
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
+                </button>
               </>
             )}
             <button
               onClick={() => setNavbarOpen(!navbarOpen)}
-              className='block lg:hidden p-2 rounded-lg'
-              aria-label='Toggle mobile menu'>
-              <span className='block w-6 h-0.5 bg-black'></span>
-              <span className='block w-6 h-0.5 bg-black mt-1.5'></span>
-              <span className='block w-6 h-0.5 bg-black mt-1.5'></span>
+              className='relative z-[61] block rounded-lg p-2 lg:hidden'
+              aria-label={navbarOpen ? 'Đóng menu' : 'Mở menu'}
+              aria-expanded={navbarOpen}>
+              {navbarOpen ? (
+                <Icon icon="tabler:x" className="text-2xl text-midnight_text" />
+              ) : (
+                <>
+                  <span className='block h-0.5 w-6 bg-black' />
+                  <span className='mt-1.5 block h-0.5 w-6 bg-black' />
+                  <span className='mt-1.5 block h-0.5 w-6 bg-black' />
+                </>
+              )}
             </button>
           </div>
         </div>
-        {navbarOpen && (
-          <div className='fixed top-0 left-0 w-full h-full bg-black/50 z-40' />
-        )}
-        <div
-          ref={mobileMenuRef}
-          className={`lg:hidden fixed top-0 right-0 h-full w-full bg-white shadow-lg transform transition-transform duration-300 max-w-xs ${
-            navbarOpen ? 'translate-x-0' : 'translate-x-full'
-          } z-50`}>
-          <div className='flex items-center justify-between p-4'>
-            <h2 className='text-lg font-bold text-midnight_text'>
-              <Logo />
-            </h2>
+      </div>
+    </header>
 
-            {/*  */}
+    {/* Mobile menu: overlay mờ + panel nền trắng (ngoài header để z-index đúng) */}
+    {navbarOpen && (
+      <div
+        className="fixed inset-0 z-[60] lg:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu điều hướng">
+        <button
+          type="button"
+          className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+          aria-label="Đóng menu"
+          onClick={() => setNavbarOpen(false)}
+        />
+        <aside
+          ref={mobileMenuRef}
+          className="absolute inset-y-0 right-0 flex w-[min(100%,20rem)] flex-col border-l border-slate-200 bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-4">
+            <Logo />
             <button
+              type="button"
               onClick={() => setNavbarOpen(false)}
-              className="bg-[url('/images/closed.svg')] bg-no-repeat bg-contain w-5 h-5 absolute top-0 right-0 mr-8 mt-8 dark:invert"
-              aria-label='Close menu Modal'></button>
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+              aria-label="Đóng menu">
+              <Icon icon="tabler:x" className="text-2xl" />
+            </button>
           </div>
-          <nav className='flex flex-col items-start p-4'>
+          <nav className="flex flex-1 flex-col overflow-y-auto bg-white px-4 py-2">
             {headerData.map((item, index) => (
               <MobileHeaderLink
                 key={index}
@@ -253,48 +232,100 @@ const Header: React.FC = () => {
                 onNavigate={() => setNavbarOpen(false)}
               />
             ))}
-            <div className='mt-4 flex flex-col gap-4 w-full'>
+            <div className="mt-auto flex w-full flex-col gap-3 border-t border-slate-100 py-4">
               {session ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className='bg-primary text-white w-full px-4 py-2 rounded-lg text-center font-semibold'
+                    className="w-full rounded-xl bg-primary px-4 py-3 text-center font-semibold text-white"
                     onClick={() => setNavbarOpen(false)}>
                     Vào Dashboard
                   </Link>
                   <button
+                    type="button"
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className='bg-slate-100 text-slate-700 w-full px-4 py-2 rounded-lg'>
+                    className="w-full rounded-xl bg-slate-100 px-4 py-3 text-slate-700">
                     Đăng xuất
                   </button>
                 </>
               ) : (
                 <>
-                  <Link
-                    href='#'
-                    className='bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white'
-                    onClick={(e) => {
-                      e.preventDefault()
-                      openSignInModal()
-                    }}>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl border-2 border-primary px-4 py-3 font-semibold text-primary hover:bg-primary/5"
+                    onClick={openSignInModal}>
                     Đăng Nhập
-                  </Link>
-                  <Link
-                    href='#'
-                    className='bg-primary text-white  px-4 py-2 rounded-lg hover:bg-blue-700'
-                    onClick={(e) => {
-                      e.preventDefault()
-                      openSignUpModal()
-                    }}>
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 px-4 py-3 font-semibold text-white shadow-md"
+                    onClick={openSignUpModal}>
                     Đăng Ký DN
-                  </Link>
+                  </button>
                 </>
               )}
             </div>
           </nav>
+        </aside>
+      </div>
+    )}
+
+    {isSignInOpen && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        onClick={closeAuthModals}>
+        <div
+          ref={signInRef}
+          className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white px-8 pb-8 pt-12 text-center shadow-2xl"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={closeAuthModals}
+            className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 hover:bg-slate-100 hover:text-gray-700"
+            aria-label="Đóng">
+            <Icon icon="tabler:x" className="text-2xl" />
+          </button>
+          <Signin
+            onSuccess={closeAuthModals}
+            onSwitchToSignUp={() => {
+              setIsSignInOpen(false)
+              setIsSignUpOpen(true)
+            }}
+          />
         </div>
       </div>
-    </header>
+    )}
+
+    {isSignUpOpen && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        onClick={closeAuthModals}>
+        <div
+          ref={signUpRef}
+          className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white px-8 pb-8 pt-12 text-center shadow-2xl"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={closeAuthModals}
+            className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 hover:bg-slate-100 hover:text-gray-700"
+            aria-label="Đóng">
+            <Icon icon="tabler:x" className="text-2xl" />
+          </button>
+          <SignUp
+            onSwitchToSignIn={openSignInModal}
+            onSuccess={() => {
+              setIsSignUpOpen(false)
+              setIsSignInOpen(true)
+            }}
+          />
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 

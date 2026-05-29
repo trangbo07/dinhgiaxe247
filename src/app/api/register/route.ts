@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseAuthClient } from "@/utils/supabase";
+import { createSupabaseAuthClient, getSupabaseAuthConfigError } from "@/utils/supabase";
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +36,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const configErr = getSupabaseAuthConfigError();
+    if (configErr) {
+      return NextResponse.json({ error: configErr }, { status: 503 });
+    }
+
     const supabase = createSupabaseAuthClient();
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -68,10 +73,9 @@ export async function POST(request: Request) {
         ? "Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản."
         : "Đăng ký thành công. Bạn có thể đăng nhập ngay.",
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Không thể đăng ký. Vui lòng thử lại sau." },
-      { status: 500 }
-    );
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Không thể đăng ký. Vui lòng thử lại sau.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

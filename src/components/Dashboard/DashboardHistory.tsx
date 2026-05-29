@@ -47,9 +47,9 @@ export default function DashboardHistory() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-midnight_text">Lịch sử định giá</h2>
+          <h2 className="text-xl font-bold text-midnight_text sm:text-2xl">Lịch sử định giá</h2>
           <p className="text-sm text-slate-500 mt-1">
             Lưu lại mọi lượt định giá của bạn trên website.
           </p>
@@ -57,7 +57,7 @@ export default function DashboardHistory() {
         <button
           type="button"
           onClick={load}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200">
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto">
           <Icon icon="tabler:refresh" />
           Làm mới
         </button>
@@ -111,10 +111,10 @@ export default function DashboardHistory() {
           {items.map((v) => (
             <article
               key={v.id}
-              className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex flex-wrap justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold text-midnight_text">
+              className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-midnight_text sm:text-lg">
                     {v.brand} {v.model}
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">
@@ -127,8 +127,8 @@ export default function DashboardHistory() {
                     {v.source ? ` · Nguồn: ${v.source}` : ''}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-black text-primary">
+                <div className="rounded-xl bg-primary/5 p-3 sm:text-right">
+                  <p className="text-lg font-black text-primary sm:text-xl">
                     {v.price != null ? `${v.price.toLocaleString('vi-VN')} đ` : '—'}
                   </p>
                   {v.price_low != null && v.price_high != null && (
