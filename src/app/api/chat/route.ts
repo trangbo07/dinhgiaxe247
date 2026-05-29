@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAuthSession } from '@/lib/auth-server'
+import { rateLimitAuthChat } from '@/lib/rate-limit'
+import { rateLimitResponse } from '@/lib/api-rate-limit-response'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
@@ -155,6 +158,17 @@ async function scrapeMarket(vehicle: VehicleContext): Promise<MarketInsight[]> {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getAuthSession()
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Chat AI chỉ dành cho tài khoản đã đăng nhập.' },
+        { status: 401 }
+      )
+    }
+
+    const limited = rateLimitAuthChat(session.user.id)
+    if (!limited.allowed) return rateLimitResponse(limited)
+
     const body = await request.json()
     const { message, history, basePrice, priceLow, priceHigh, vehicle } = body as {
       message?: string

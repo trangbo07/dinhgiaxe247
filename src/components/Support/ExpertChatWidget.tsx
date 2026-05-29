@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import toast from 'react-hot-toast'
 
 type ChatRole = 'user' | 'assistant'
 type ChatMessage = {
@@ -177,6 +178,9 @@ export default function ExpertChatWidget(props: {
       const data = await res.json()
 
       if (!res.ok || !data?.reply) {
+        if (res.status === 429 || res.status === 401) {
+          toast.error(data?.error || 'Không thể gửi tin nhắn lúc này.')
+        }
         const fallback = replyFor(text)
         pushAssistant(fallback)
       } else {

@@ -1,19 +1,27 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-const Logo: React.FC = () => {
-  return (
-    <Link href='/'>
-      <Image
-        src='/images/logo/logo_Valucar.png'
-        alt='logo'
-        width={160}
-        height={50}
-        style={{ width: '105px', height: 'auto' }}
-        quality={100}
-      />
-    </Link>
+type LogoProps = {
+  href?: string
+  /** false = chỉ ảnh, không bọc Link (dùng khi cha đã là Link) */
+  linked?: boolean
+}
+
+const Logo: React.FC<LogoProps> = ({ href = '/', linked = true }) => {
+  const image = (
+    <Image
+      src='/images/logo/logo_Valucar.png'
+      alt='ValuCar'
+      width={160}
+      height={50}
+      style={{ width: '105px', height: 'auto' }}
+      quality={100}
+    />
   )
+
+  if (!linked) return image
+
+  return <Link href={href}>{image}</Link>
 }
 
 export default Logo

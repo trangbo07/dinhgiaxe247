@@ -15,7 +15,13 @@ interface Model { id: string; name: string; years: YearEntry[] }
 interface YearEntry { year: number; versions: Version[] }
 interface Version { name: string; colors: string[] }
 
-const ValuationForm = () => {
+type ValuationFormProps = {
+  variant?: 'default' | 'dashboard'
+  onValuationSaved?: () => void
+}
+
+const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormProps) => {
+  const isDashboard = variant === 'dashboard'
   const [brands, setBrands] = useState<Brand[]>([])
   const [models, setModels] = useState<Model[]>([])
   const [years, setYears] = useState<YearEntry[]>([])
@@ -250,24 +256,28 @@ const ValuationForm = () => {
   const calcPrice = async (): Promise<boolean> => {
     if (!session) {
       toast.error('Vui lòng đăng nhập để sử dụng tính năng định giá.')
-      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
+      if (!isDashboard && typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
         ;(window as any).openSignInModal()
       }
       return false
     }
 
-    const email = (session.user as any)?.email as string | undefined
-    if (email) syncFreeUsageForUser(email)
+    if (!isDashboard) {
+      const email = (session.user as any)?.email as string | undefined
+      if (email) syncFreeUsageForUser(email)
 
-    const unlockedForThisRun = isPro || canUseValuation()
-    if (!unlockedForThisRun) {
-      toast.error('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp.')
-      return false
+      const unlockedForThisRun = isPro || canUseValuation()
+      if (!unlockedForThisRun) {
+        toast.error('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng đăng nhập dashboard doanh nghiệp.')
+        return false
+      }
     }
+
+    const unlockedForThisRun = isDashboard || isPro || canUseValuation()
 
     setValuationLoading(true)
     try {
-      if (!isPro) {
+      if (!isDashboard && !isPro) {
         const email = (session.user as any)?.email as string | undefined
         consumeValuationUse(email ?? null)
       }
@@ -288,9 +298,42 @@ const ValuationForm = () => {
         setPriceLow(resData.priceLow ?? null)
         setPriceHigh(resData.priceHigh ?? null)
         setExplanation(resData.explanation || '')
-        setBusinessAccessForCurrentResult(unlockedForThisRun)
+        setBusinessAccessForCurrentResult(isDashboard || unlockedForThisRun)
+
+        if (isDashboard && session?.user?.id) {
+          try {
+            const saveRes = await fetch('/api/valuations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                brand: getBrandName(),
+                model: getModelName(),
+                year: parseInt(selectedYear, 10) || null,
+                version: selectedVersion || null,
+                color: selectedColor || null,
+                mileage: parseInt(String(mileage).replace(/\D/g, ''), 10) || 0,
+                price: resData.price ?? null,
+                priceLow: resData.priceLow ?? null,
+                priceHigh: resData.priceHigh ?? null,
+                explanation: resData.explanation || '',
+                source: resData.source || null,
+              }),
+            })
+            if (saveRes.ok) {
+              toast.success('Đã lưu định giá vào lịch sử')
+              onValuationSaved?.()
+            } else {
+              const err = await saveRes.json()
+              toast.error(err.error || 'Không lưu được lịch sử (kiểm tra Supabase)')
+            }
+          } catch {
+            toast.error('Không kết nối được server lưu lịch sử')
+          }
+        }
         return true
       }
+
+      toast.error(resData.error || 'Không thể định giá. Vui lòng thử lại.')
     } catch (err) {
       console.error('valuation error', err)
       return false
@@ -308,7 +351,7 @@ const ValuationForm = () => {
       return
     }
 
-    if (!businessAccessForCurrentResult) {
+    if (!isDashboard && !businessAccessForCurrentResult) {
       setProModalMessage('Báo cáo chi tiết định giá là tính năng dành cho Doanh nghiệp (hoặc 3 lượt định giá free). Vui lòng nâng cấp để trải nghiệm.')
       setShowProRequiredModal(true)
       return
@@ -321,15 +364,34 @@ const ValuationForm = () => {
     setSelectedCategory(category)
   }
 
+  const sectionClass = isDashboard
+    ? 'relative'
+    : 'relative z-10 -mt-16 lg:-mt-24 pb-20'
+
   return (
-    <section id='valuation' className='relative z-10 -mt-16 lg:-mt-24 pb-20'>
-      <div className='container'>
+    <section id={isDashboard ? undefined : 'valuation'} className={sectionClass}>
+      <div className={isDashboard ? '' : 'container'}>
         <div className='bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-blue-50/60 p-8 lg:p-12 backdrop-blur-3xl overflow-hidden relative'>
           {/* subtle accent blob inside the card */}
           <div className='absolute -top-24 -right-24 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl' />
-          <h2 className='text-3xl md:text-4xl font-extrabold text-midnight_text mb-10 text-center relative z-10'>
-            Định Giá <span className="text-primary">Xe Của Bạn</span>
-          </h2>
+          {!isDashboard && (
+            <h2 className='text-3xl md:text-4xl font-extrabold text-midnight_text mb-10 text-center relative z-10'>
+              Định Giá <span className="text-primary">Xe Của Bạn</span>
+            </h2>
+          )}
+          {isDashboard && (
+            <div className='mb-8 flex flex-wrap gap-2 relative z-10'>
+              <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200'>
+                <Icon icon="tabler:infinity" /> Không giới hạn lượt
+              </span>
+              <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold border border-violet-200'>
+                <Icon icon="tabler:cloud-check" /> Tự động lưu Supabase
+              </span>
+              <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200'>
+                <Icon icon="tabler:message-chatbot" /> Chat AI unlimited
+              </span>
+            </div>
+          )}
           <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10'>
             <div className='lg:col-span-7 space-y-5'>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -439,7 +501,7 @@ const ValuationForm = () => {
 
                     // Gói Cá nhân cũng được dùng đầy đủ tính năng như Doanh nghiệp,
                     // nhưng chỉ giới hạn số lượt định giá theo tháng.
-                    if (!isPro && !canUseValuation()) {
+                    if (!isDashboard && !isPro && !canUseValuation()) {
                       setProModalMessage('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
                       setShowProRequiredModal(true)
                       return
@@ -460,14 +522,15 @@ const ValuationForm = () => {
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700 font-extrabold">Định giá bằng hình ảnh</span>
                 </button>
               </div>
-              {!isPro && (
+              {!isDashboard && !isPro && (
                 <p className='text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mt-3 inline-block'>
                   Gói Cá nhân: còn {remainingFreeValuations}/3 lượt định giá trong tháng này.
                 </p>
               )}
             </div>
-            <div className='lg:col-span-5 flex items-center justify-center bg-gray-50/50 rounded-2xl border border-gray-100 p-8'>
+            <div className='lg:col-span-5 min-h-[280px]'>
               {valuationLoading ? (
+                <div className='flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8'>
                 <div className='text-center'>
                   <div className='mb-6 h-20 flex items-center justify-center overflow-hidden'>
                     <style>{`
@@ -501,8 +564,9 @@ const ValuationForm = () => {
                     </span>
                   </p>
                 </div>
+                </div>
               ) : price !== null || priceLow !== null || priceHigh !== null ? (
-                <div className='text-center'>
+                <div className='flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8 text-center'>
                   <p className='text-xl font-semibold text-gray-600 mb-2'>Giá trong khoảng</p>
                   {(() => {
                     const low = priceLow ?? (price != null ? price - Math.max(15_000_000, Math.round(price * 0.025)) : null)
@@ -544,11 +608,15 @@ const ValuationForm = () => {
                   </p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center text-gray-400 space-y-4">
-                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8 text-gray-400">
+                  <div className="mb-2 flex h-32 w-32 items-center justify-center rounded-full bg-gray-100">
                     <Icon icon="tabler:car-suv" className="text-6xl text-gray-300" />
                   </div>
-                  <p className="text-center font-medium">Nhập thông tin xe của bạn<br />để nhận định giá tức thì</p>
+                  <p className="text-center font-medium">
+                    Nhập thông tin xe của bạn
+                    <br />
+                    để nhận định giá tức thì
+                  </p>
                 </div>
               )}
             </div>
@@ -1018,19 +1086,34 @@ const ValuationForm = () => {
 
             <div className='flex flex-col w-full gap-3'>
               {!session ? (
-                <button
-                  onClick={() => {
-                    setShowProRequiredModal(false);
-                    if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
-                      (window as any).openSignInModal();
-                    } else {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                      toast('Vui lòng bấm Đăng Nhập ở góc trên màn hình.', { icon: 'ℹ️' });
-                    }
-                  }}
-                  className='w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-primary to-blue-600 shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] transition-all flex justify-center items-center gap-2'>
-                  Đăng Nhập Để Tiếp Tục <Icon icon="tabler:login" className="text-xl" />
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      setShowProRequiredModal(false);
+                      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
+                        (window as any).openSignInModal();
+                      } else {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        toast('Vui lòng bấm Đăng Nhập ở góc trên màn hình.', { icon: 'ℹ️' });
+                      }
+                    }}
+                    className='w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-primary to-blue-600 shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] transition-all flex justify-center items-center gap-2'>
+                    Đăng Nhập Để Tiếp Tục <Icon icon="tabler:login" className="text-xl" />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setShowProRequiredModal(false);
+                      if (typeof window !== 'undefined' && typeof (window as any).openSignUpModal === 'function') {
+                        (window as any).openSignUpModal();
+                      } else {
+                        window.location.href = '/signup';
+                      }
+                    }}
+                    className='w-full py-3 rounded-xl text-base font-semibold text-primary border-2 border-primary/30 hover:bg-primary/5 transition-all'>
+                    Đăng ký tài khoản Doanh nghiệp
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => {

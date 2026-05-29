@@ -7,9 +7,12 @@ import toast from 'react-hot-toast'
 import Logo from '@/components/Layout/Header/Logo'
 import Loader from '@/components/Common/Loader'
 
-const Signin = () => {
-  const router = useRouter()
+type SigninProps = {
+  onSwitchToSignUp?: () => void
+}
 
+const Signin = ({ onSwitchToSignUp }: SigninProps) => {
+  const router = useRouter()
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -23,7 +26,7 @@ const Signin = () => {
     const email = loginData.email.trim()
     const password = loginData.password.trim()
     if (!email || !password) {
-      toast.error('Vui lòng nhập tài khoản và mật khẩu')
+      toast.error('Vui lòng nhập email và mật khẩu')
       return
     }
 
@@ -40,10 +43,8 @@ const Signin = () => {
         if (callback?.ok && !callback?.error) {
           toast.success('Đăng nhập thành công')
           setLoading(false)
-          // Hide modal and refresh page to show session, or just reload smoothly
-          if (typeof window !== 'undefined') {
-            window.location.reload()
-          }
+          router.push('/dashboard')
+          router.refresh()
         }
       })
       .catch((err) => {
@@ -59,14 +60,15 @@ const Signin = () => {
         <Logo />
       </div>
       
-      <h3 className="text-2xl font-bold text-midnight_text mb-2">Đăng Nhập Hệ Thống</h3>
-      <p className="text-sm text-gray-500 mb-8">Xin chào bạn đã quay trở lại với ValuCar </p>
-      <p className="text-sm text-gray-500 mb-8">Tài khoản demo : admin - mật khẩu : 123</p>
+      <h3 className="text-2xl font-bold text-midnight_text mb-2">Đăng Nhập Doanh Nghiệp</h3>
+      <p className="text-sm text-gray-500 mb-8">Dùng email doanh nghiệp đã đăng ký trên ValuCar</p>
       <form onSubmit={loginUser}>
         <div className='mb-5'>
           <input
-            type='text'
-            placeholder='Tài khoản'
+            type='email'
+            placeholder='Email doanh nghiệp'
+            autoComplete='email'
+            required
             onChange={(e) =>
               setLoginData({ ...loginData, email: e.target.value })
             }
@@ -99,9 +101,18 @@ const Signin = () => {
       </Link>
       <p className='text-gray-500 text-sm'>
         Chưa có tài khoản?{' '}
-        <Link href='/' className='text-primary font-bold hover:underline'>
-          Đăng Ký Khách Mới
-        </Link>
+        {onSwitchToSignUp ? (
+          <button
+            type='button'
+            onClick={onSwitchToSignUp}
+            className='text-primary font-bold hover:underline'>
+            Đăng ký Doanh nghiệp
+          </button>
+        ) : (
+          <Link href='/signup' className='text-primary font-bold hover:underline'>
+            Đăng ký Doanh nghiệp
+          </Link>
+        )}
       </p>
     </>
   )

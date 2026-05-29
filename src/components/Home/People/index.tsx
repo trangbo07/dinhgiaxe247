@@ -4,8 +4,8 @@ import { Icon } from '@iconify/react/dist/iconify.js'
 
 const People = () => {
   return (
-    <section className='pt-32 sm:pb-20 pb-10' id='product'>
-      <div className='container'>
+    <section className="scroll-mt-24 pb-12 pt-8 sm:pb-16" id="testimonials">
+      <div className="container px-4">
         <div className='grid grid-cols-1 lg:grid-cols-12 space-x-1'>
           <div className='col-span-6 flex justify-center'>
             <div className="bg-Lightsuccess bg-[url('/images/people/bg-lines.png')] bg-no-repeat bg-contain bg-right-bottom w-full h-full flex flex-col gap-10 relative sm:py-11 py-14 sm:px-16 px-8 rounded-2xl after:absolute after:bg-[url('/images/people/quote.png')] after:w-48 after:h-40 after:-top-16 after:right-0">
@@ -36,10 +36,10 @@ const People = () => {
               ValuCar kết hợp AI và dữ liệu thị trường để trả về khoảng giá tham khảo kèm lý do rõ ràng. Bạn có thể đối chiếu theo mẫu tin tương tự, theo dõi lịch sử định giá và nhận tư vấn tình huống đặc biệt ngay trên cùng một nền tảng.
             </p>
             <Link
-              href={'/'}
-              className='text-primary hover:text-blue-700 text-lg font-medium flex items-center gap-2 mx-auto lg:mx-0'>
-              Tìm hiểu thêm
-              <Icon icon='tabler:arrow-right' className='text-2xl' />
+              href="/#valuation"
+              className="mx-auto inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:opacity-90 lg:mx-0">
+              Định giá xe của tôi
+              <Icon icon="tabler:arrow-right" className="text-lg" />
             </Link>
           </div>
         </div>

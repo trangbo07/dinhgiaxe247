@@ -71,13 +71,16 @@ const Pricing = () => {
   const isSinglePlan = !loading && filteredPlans.length === 1
 
   return (
-    <section id='pricing' className='bg-header relative py-20'>
+    <section id="pricing" className="relative scroll-mt-24 bg-header py-20 lg:py-28">
       <Image src='/images/pricing/upperline.png' alt='upperline-image' width={280} height={219} className='absolute top-[160px] left-[90px] hidden sm:block opacity-5' />
       <Image src='/images/pricing/lowerline.png' alt='lowerline-image' width={180} height={100} className='absolute bottom-[0px] right-[90px] opacity-5' />
       <div className='container px-4'>
-        <div className='max-w-3xl mx-auto text-center mb-16'>
-          <h2 className='text-4xl sm:text-5xl font-black mb-6 bg-gradient-to-r from-midnight_text to-midnight_text bg-clip-text'>Gói Giá Của Chúng Tôi</h2>
-          <p className='text-lg text-gray-600 leading-relaxed'>Chọn gói phù hợp với nhu cầu của bạn. Minh bạch, không có phí ẩn, và có thể nâng cấp bất kỳ lúc nào.</p>
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">Bảng giá</span>
+          <h2 className="mt-2 text-4xl font-black text-midnight_text sm:text-5xl">Gói phù hợp từng đối tượng</h2>
+          <p className="mt-4 text-lg leading-relaxed text-slate-600">
+            Cá nhân miễn phí có giới hạn — doanh nghiệp mở dashboard đầy đủ. Minh bạch, không phí ẩn.
+          </p>
           {selectedCategory === 'personal' && (
             <p className='mt-3 inline-block rounded-full bg-yellow-50 border border-yellow-200 px-4 py-2 text-sm font-semibold text-yellow-800'>
               Lượt miễn phí còn lại tháng này: {remainingFreeValuations}/3

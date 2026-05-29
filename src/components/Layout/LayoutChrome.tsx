@@ -11,12 +11,13 @@ export default function LayoutChrome({
 }) {
   const pathname = usePathname()
   const isAdocarRoute = pathname?.startsWith("/adocar")
+  const isDashboard = pathname?.startsWith("/dashboard")
 
   return (
     <>
-      {!isAdocarRoute && <Header />}
+      {!isAdocarRoute && !isDashboard && <Header />}
       {children}
-      {!isAdocarRoute && <Footer />}
+      {!isAdocarRoute && !isDashboard && <Footer />}
     </>
   )
 }

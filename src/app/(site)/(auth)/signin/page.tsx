@@ -11,7 +11,13 @@ const SigninPage = () => {
     <>
       <Breadcrumb pageName='Trang Đăng Nhập' />
 
-      <Signin />
+      <section className='pb-16 pt-4'>
+        <div className='container'>
+          <div className='mx-auto max-w-md rounded-3xl border border-gray-100 bg-white px-8 py-10 text-center shadow-xl'>
+            <Signin />
+          </div>
+        </div>
+      </section>
     </>
   )
 }

@@ -64,6 +64,42 @@
   .container {
     @apply max-w-7xl mx-auto w-full px-4;
   }
+
+  @keyframes hero-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+
+  .hero-float {
+    animation: hero-float 5.5s ease-in-out infinite;
+  }
+
+  @keyframes hero-shine {
+    0% {
+      transform: translateX(-100%) skewX(-12deg);
+    }
+    100% {
+      transform: translateX(200%) skewX(-12deg);
+    }
+  }
+
+  .hero-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 60%
+    );
+    animation: hero-shine 4s ease-in-out infinite;
+  }
 }
 
 html {

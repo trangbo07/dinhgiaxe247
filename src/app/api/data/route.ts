@@ -7,12 +7,11 @@ import { plansData } from '@/types/plans'
 import { footerlLinksData } from '@/types/footerlinks'
 
 const HeaderData: headerItem[] = [
-  { label: 'Sản Phẩm', href: '/#product' },
-  { label: 'AdoCar', href: '/adocar' },
-  { label: 'Giá', href: '/#pricing' },
-  { label: 'Tính Năng', href: '/#features ' },
-  { label: 'Liên Hệ', href: '/#contact ' },
-  { label: 'Tài Liệu', href: '/documentation' },
+  { label: 'Định giá', href: '/#valuation' },
+  { label: 'Quy trình', href: '/#how-it-works' },
+  { label: 'Tính năng', href: '/#features' },
+  { label: 'Bảng giá', href: '/#pricing' },
+  { label: 'Liên hệ', href: '/#contact' },
 ]
 
 const FeatureData: featureData[] = [

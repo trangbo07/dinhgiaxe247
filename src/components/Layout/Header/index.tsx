@@ -40,12 +40,30 @@ const Header: React.FC = () => {
     fetchData()
   }, [])
 
-  // Ensure window.openSignInModal is always the most up to date instance
+  // Ensure global modal helpers are always the most up-to-date instance
   if (typeof window !== 'undefined') {
     (window as any).openSignInModal = () => {
-      setIsSignInOpen(true);
-      setNavbarOpen(false);
-    };
+      setIsSignUpOpen(false)
+      setIsSignInOpen(true)
+      setNavbarOpen(false)
+    }
+    ;(window as any).openSignUpModal = () => {
+      setIsSignInOpen(false)
+      setIsSignUpOpen(true)
+      setNavbarOpen(false)
+    }
+  }
+
+  const openSignInModal = () => {
+    setIsSignUpOpen(false)
+    setIsSignInOpen(true)
+    setNavbarOpen(false)
+  }
+
+  const openSignUpModal = () => {
+    setIsSignInOpen(false)
+    setIsSignUpOpen(true)
+    setNavbarOpen(false)
   }
 
   const handleScroll = () => {
@@ -99,8 +117,10 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`z-40 w-full transition-all fixed top-0 duration-300 ${
-        sticky ? 'shadow-lg bg-white py-3' : 'shadow-none bg-transparent py-3'
+      className={`fixed top-0 z-40 w-full transition-all duration-300 ${
+        sticky
+          ? 'bg-white/95 py-3 shadow-[0_8px_30px_-12px_rgba(0,27,80,0.15)] backdrop-blur-md'
+          : 'bg-header/80 py-3 backdrop-blur-sm'
       }`}>
       <div>
         <div className='container flex items-center justify-between'>
@@ -114,15 +134,17 @@ const Header: React.FC = () => {
           </nav>
           <div className='flex items-center gap-4'>
             {session ? (
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col text-right">
-                  <span className="text-sm font-bold text-midnight_text">Xin chào, {session.user?.name} {isPro && <span className="text-yellow-500">(PRO)</span>}</span>
-                  <span className="text-sm font-medium text-primary">Ví: {balance.toLocaleString('vi-VN')} VNĐ</span>
-                </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard"
+                  className="hidden lg:inline-flex items-center gap-2 bg-gradient-to-r from-primary to-blue-600 text-white px-6 py-2.5 rounded-full font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+                  <Icon icon="tabler:layout-dashboard" className="text-lg" />
+                  Vào Dashboard
+                </Link>
                 <button
-                  onClick={() => signOut()}
-                  className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:from-red-600 hover:to-rose-600 transition-all shadow-md hover:shadow-lg">
-                  Đăng Xuất
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-full font-semibold text-sm hover:bg-slate-200 transition-all">
+                  Đăng xuất
                 </button>
               </div>
             ) : (
@@ -130,8 +152,9 @@ const Header: React.FC = () => {
                 <Link
                   href='#'
                   className='hidden lg:block bg-white text-primary hover:bg-gray-50 px-6 py-2.5 rounded-full font-semibold text-base transition-all shadow-sm'
-                  onClick={() => {
-                    setIsSignInOpen(true)
+                  onClick={(e) => {
+                    e.preventDefault()
+                    openSignInModal()
                   }}>
                   Đăng Nhập
                 </Link>
@@ -149,17 +172,23 @@ const Header: React.FC = () => {
                           className='text-gray-400 hover:text-gray-700 text-2xl inline-block me-2'
                         />
                       </button>
-                      <Signin />
+                      <Signin
+                        onSwitchToSignUp={() => {
+                          setIsSignInOpen(false)
+                          setIsSignUpOpen(true)
+                        }}
+                      />
                     </div>
                   </div>
                 )}
                 <Link
                   href='#'
                   className='hidden lg:block bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 px-6 py-2.5 rounded-full font-semibold text-base shadow-lg shadow-primary/30 transition-all'
-                  onClick={() => {
-                    setIsSignUpOpen(true)
+                  onClick={(e) => {
+                    e.preventDefault()
+                    openSignUpModal()
                   }}>
-                  Đăng Ký
+                  Đăng Ký DN
                 </Link>
                 {isSignUpOpen && (
                   <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity'>
@@ -175,7 +204,13 @@ const Header: React.FC = () => {
                           className='text-gray-400 hover:text-gray-700 text-2xl inline-block me-2'
                         />
                       </button>
-                      <SignUp />
+                      <SignUp
+                        onSwitchToSignIn={openSignInModal}
+                        onSuccess={() => {
+                          setIsSignUpOpen(false)
+                          window.location.href = '/signin'
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -212,34 +247,46 @@ const Header: React.FC = () => {
           </div>
           <nav className='flex flex-col items-start p-4'>
             {headerData.map((item, index) => (
-              <MobileHeaderLink key={index} item={item} />
+              <MobileHeaderLink
+                key={index}
+                item={item}
+                onNavigate={() => setNavbarOpen(false)}
+              />
             ))}
             <div className='mt-4 flex flex-col gap-4 w-full'>
               {session ? (
-                <button
-                  onClick={() => signOut()}
-                  className='bg-red-500 text-white w-full px-4 py-2 rounded-lg hover:bg-red-700'>
-                  Đăng Xuất
-                </button>
+                <>
+                  <Link
+                    href="/dashboard"
+                    className='bg-primary text-white w-full px-4 py-2 rounded-lg text-center font-semibold'
+                    onClick={() => setNavbarOpen(false)}>
+                    Vào Dashboard
+                  </Link>
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className='bg-slate-100 text-slate-700 w-full px-4 py-2 rounded-lg'>
+                    Đăng xuất
+                  </button>
+                </>
               ) : (
                 <>
                   <Link
                     href='#'
                     className='bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white'
-                    onClick={() => {
-                      setIsSignInOpen(true)
-                      setNavbarOpen(false)
+                    onClick={(e) => {
+                      e.preventDefault()
+                      openSignInModal()
                     }}>
                     Đăng Nhập
                   </Link>
                   <Link
                     href='#'
                     className='bg-primary text-white  px-4 py-2 rounded-lg hover:bg-blue-700'
-                    onClick={() => {
-                      setIsSignUpOpen(true)
-                      setNavbarOpen(false)
+                    onClick={(e) => {
+                      e.preventDefault()
+                      openSignUpModal()
                     }}>
-                    Đăng Ký
+                    Đăng Ký DN
                   </Link>
                 </>
               )}

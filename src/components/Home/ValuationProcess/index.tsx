@@ -31,16 +31,17 @@ const ValuationProcess = () => {
   ]
 
   return (
-    <section className='py-20 bg-gradient-to-b from-white to-gray-50'>
-      <div className='container'>
-        {/* Title */}
-        <div className='text-center mb-16'>
-          <h2 className='text-4xl lg:text-5xl font-bold text-midnight_text mb-4'>
-            Quy Trình Định Giá Xe
+    <section id="how-it-works" className="scroll-mt-24 bg-gradient-to-b from-white via-slate-50/50 to-white py-20 lg:py-28">
+      <div className="container px-4">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">
+            Quy trình
+          </span>
+          <h2 className="mt-2 text-3xl font-black text-midnight_text sm:text-4xl lg:text-5xl">
+            4 bước đến con số bạn tin được
           </h2>
-          <p className='text-lg text-black/60 max-w-3xl mx-auto mb-8'>
-            ValuCar giúp bạn định giá xe ô tô một cách nhanh chóng, minh bạch và chính xác
-            chỉ trong 4 bước đơn giản
+          <p className="mt-4 text-base text-slate-600 sm:text-lg">
+            Không cần tài khoản để thử — chỉ cần thông tin xe và vài giây liên hệ khi xem kết quả.
           </p>
         </div>
 
@@ -54,7 +55,7 @@ const ValuationProcess = () => {
               )}
 
               {/* Card */}
-              <div className='bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 h-full relative z-10'>
+              <div className="relative z-10 h-full rounded-2xl bg-white p-8 shadow-md transition-all duration-300 hover:shadow-xl">
                 {/* Step Number */}
                 <div className='text-primary text-5xl font-bold opacity-20 mb-4'>
                   {step.number}
@@ -88,10 +89,10 @@ const ValuationProcess = () => {
             Sẵn sàng định giá xe của bạn ngay bây giờ?
           </p>
           <a
-            href='/#valuation'
-            className='inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-full font-semibold hover:bg-primary/90 transition-colors duration-300'>
-            Bắt Đầu Định Giá
-            <Icon icon='tabler:arrow-right' className='text-xl' />
+            href="/#valuation"
+            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-blue-600 px-8 py-4 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+            Bắt đầu định giá
+            <Icon icon="tabler:arrow-right" className="text-xl" />
           </a>
         </div>
       </div>

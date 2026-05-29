@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAuthSession } from '@/lib/auth-server'
+import { getClientIp } from '@/lib/client-ip'
+import { rateLimitAuthValuation, rateLimitGuestValuation } from '@/lib/rate-limit'
+import { rateLimitResponse } from '@/lib/api-rate-limit-response'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
@@ -218,6 +222,17 @@ function fallbackValuation(year?: number, mileage?: number) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getAuthSession()
+    const ip = getClientIp(request)
+
+    if (session?.user?.id) {
+      const limited = rateLimitAuthValuation(session.user.id)
+      if (!limited.allowed) return rateLimitResponse(limited)
+    } else {
+      const limited = rateLimitGuestValuation(ip)
+      if (!limited.allowed) return rateLimitResponse(limited)
+    }
+
     const body = await request.json()
     const { brand, model, year, color, mileage } = body
     const parsedYear = Number(year)

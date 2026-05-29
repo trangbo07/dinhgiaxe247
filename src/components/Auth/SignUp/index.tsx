@@ -1,114 +1,194 @@
 'use client'
+
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import SocialSignUp from '../SocialSignUp'
-import Logo from '@/components/Layout/Header/Logo'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
+import Logo from '@/components/Layout/Header/Logo'
 import Loader from '@/components/Common/Loader'
-const SignUp = () => {
-  const router = useRouter()
+
+type SignUpProps = {
+  onSuccess?: () => void
+  onSwitchToSignIn?: () => void
+}
+
+const inputClass =
+  'w-full rounded-xl border border-gray-200 bg-gray-50 focus:bg-white px-5 py-3.5 text-base text-dark outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10 text-gray-800'
+
+const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
+  const [form, setForm] = useState({
+    companyName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  })
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    setLoading(true)
-    const data = new FormData(e.currentTarget)
-    const value = Object.fromEntries(data.entries())
-    const finalData = { ...value }
+    const companyName = form.companyName.trim()
+    const email = form.email.trim()
+    const password = form.password
+    const confirmPassword = form.confirmPassword
 
-    fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(finalData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        toast.success('Successfully registered')
-        toast.success('Đăng ký thành công')
-        setLoading(false)
-        router.push('/signin')
+    if (!companyName || !email || !password || !confirmPassword) {
+      toast.error('Vui lòng nhập tên doanh nghiệp, email và mật khẩu')
+      return
+    }
+
+    if (companyName.length < 2) {
+      toast.error('Tên doanh nghiệp không hợp lệ')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Email không hợp lệ')
+      return
+    }
+
+    if (password.length < 6) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyName, email, password }),
       })
-      .catch((err) => {
-        toast.error(err.message)
-        setLoading(false)
-      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Đăng ký thất bại')
+      }
+
+      toast.success(data.message || 'Đăng ký doanh nghiệp thành công')
+      setForm({ companyName: '', email: '', password: '', confirmPassword: '' })
+
+      if (onSuccess) {
+        onSuccess()
+      } else if (onSwitchToSignIn) {
+        onSwitchToSignIn()
+      } else if (typeof window !== 'undefined') {
+        window.location.href = '/signin'
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Đăng ký thất bại')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <>
-      <div className='mb-10 text-center mx-auto inline-block max-w-[160px]'>
+      <div className='mb-6 text-center mx-auto inline-block max-w-[160px]'>
         <Logo />
       </div>
 
-      <SocialSignUp />
+      <h3 className='text-2xl font-bold text-midnight_text mb-2'>
+        Đăng Ký Doanh Nghiệp
+      </h3>
+      <p className='text-sm text-gray-500 mb-8'>
+        Chỉ cần tên doanh nghiệp và email — bổ sung hồ sơ chi tiết sau khi đăng
+        nhập.
+      </p>
 
-      <span
-        className="relative my-8 block text-center z-1 
-  before:content-[''] before:absolute before:left-0 before:top-3 before:h-px before:w-[40%] before:bg-black/20 
-  after:content-[''] after:absolute after:right-0 after:top-3 after:h-px after:w-[40%] after:bg-black/20">
-        <span className='relative z-10 inline-block px-3 text-base text-black text-body-secondary'>
-          HOẶC
-        </span>
-      </span>
-
-      <form onSubmit={handleSubmit}>
-        <div className='mb-[22px]'>
+      <form onSubmit={handleSubmit} className='text-left'>
+        <div className='mb-4'>
+          <label className='block text-sm font-semibold text-midnight_text mb-1.5'>
+            Tên doanh nghiệp <span className='text-red-500'>*</span>
+          </label>
           <input
             type='text'
-            placeholder='Tên'
-            name='name'
+            placeholder='VD: Showroom Ô tô ABC'
             required
-            className='w-full rounded-md border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition border-gray-200 placeholder:text-black/30 focus:border-primary text-black focus-visible:shadow-none'
+            value={form.companyName}
+            onChange={(e) =>
+              setForm({ ...form, companyName: e.target.value })
+            }
+            className={inputClass}
           />
         </div>
-        <div className='mb-[22px]'>
+
+        <div className='mb-4'>
+          <label className='block text-sm font-semibold text-midnight_text mb-1.5'>
+            Email <span className='text-red-500'>*</span>
+          </label>
           <input
             type='email'
-            placeholder='Email'
-            name='email'
+            placeholder='email@congty.com'
+            autoComplete='email'
             required
-            className='w-full rounded-md border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition border-gray-200 placeholder:text-black/30 focus:border-primary text-black focus-visible:shadow-none'
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className={inputClass}
           />
         </div>
-        <div className='mb-[22px]'>
+
+        <div className='mb-4'>
+          <label className='block text-sm font-semibold text-midnight_text mb-1.5'>
+            Mật khẩu <span className='text-red-500'>*</span>
+          </label>
           <input
             type='password'
-            placeholder='Mật khẩu'
-            name='password'
+            placeholder='Tối thiểu 6 ký tự'
+            autoComplete='new-password'
             required
-            className='w-full rounded-md border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition border-gray-200 placeholder:text-black/30 focus:border-primary text-black focus-visible:shadow-none'
+            minLength={6}
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            className={inputClass}
           />
         </div>
-        <div className='mb-9'>
+
+        <div className='mb-6'>
+          <label className='block text-sm font-semibold text-midnight_text mb-1.5'>
+            Xác nhận mật khẩu <span className='text-red-500'>*</span>
+          </label>
+          <input
+            type='password'
+            placeholder='Nhập lại mật khẩu'
+            autoComplete='new-password'
+            required
+            minLength={6}
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+            className={inputClass}
+          />
+        </div>
+
+        <div className='mb-6'>
           <button
             type='submit'
-            className='flex w-full items-center text-18 font-medium justify-center text-white rounded-md bg-primary px-5 py-3 transition duration-300 ease-in-out hover:bg-transparent hover:text-primary border-primary border hover:cursor-pointer'>
-            Sign Up {loading && <Loader />}
-            Đăng Ký {loading && <Loader />}
+            disabled={loading}
+            className='w-full py-3.5 rounded-xl text-lg font-bold transition-all duration-300 ease-in-out text-white bg-gradient-to-r from-primary to-blue-600 shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[1.02] flex justify-center items-center gap-2 disabled:opacity-70 disabled:hover:scale-100'>
+            Tạo tài khoản {loading && <Loader />}
           </button>
         </div>
       </form>
 
-      <p className='text-body-secondary mb-4 text-black text-base'>
-        Bằng việc tạo tài khoản, bạn đồng ý với{' '}
-        <Link href='/#' className='text-primary hover:underline'>
-          Chính sách Bảo mật
-        </Link>{' '}
-        và{' '}
-        <Link href='/#' className='text-primary hover:underline'>
-          Điều khoản
-        </Link>
-      </p>
-
-      <p className='text-body-secondary text-black text-base'>
-        Đã có tài khoản?
-        <Link href='/' className='pl-2 text-primary hover:underline'>
-          Đăng Nhập
-        </Link>
+      <p className='text-gray-500 text-sm text-center'>
+        Đã có tài khoản?{' '}
+        {onSwitchToSignIn ? (
+          <button
+            type='button'
+            onClick={onSwitchToSignIn}
+            className='text-primary font-bold hover:underline'>
+            Đăng nhập ngay
+          </button>
+        ) : (
+          <Link href='/signin' className='text-primary font-bold hover:underline'>
+            Đăng nhập ngay
+          </Link>
+        )}
       </p>
     </>
   )
