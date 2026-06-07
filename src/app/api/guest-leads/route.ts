@@ -84,9 +84,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Nhu cầu không hợp lệ" }, { status: 400 });
     }
 
-    const phoneNorm = phone.replace(/^\+84/, "0");
-    if (!/^0[0-9]{9,10}$/.test(phoneNorm)) {
-      return NextResponse.json({ error: "Số điện thoại không hợp lệ" }, { status: 400 });
+    const phoneNorm = phone.replace(/\s|-|\./g, "").replace(/^\+84/, "0");
+    if (!/^0[3-9][0-9]{8}$/.test(phoneNorm)) {
+      return NextResponse.json(
+        { error: "Số điện thoại không hợp lệ (phải là số Việt Nam 10 số, bắt đầu 03x/07x/08x/09x)" },
+        { status: 400 }
+      );
     }
 
     const configErr = getSupabaseAdminConfigError();

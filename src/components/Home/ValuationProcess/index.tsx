@@ -1,6 +1,7 @@
 'use client'
 
 import { Icon } from '@iconify/react/dist/iconify.js'
+import Link from 'next/link'
 
 const ValuationProcess = () => {
   const steps = [
@@ -88,12 +89,12 @@ const ValuationProcess = () => {
           <p className='text-lg text-black/60 mb-6'>
             Sẵn sàng định giá xe của bạn ngay bây giờ?
           </p>
-          <a
+          <Link
             href="/#valuation"
             className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-blue-600 px-8 py-4 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
             Bắt đầu định giá
             <Icon icon="tabler:arrow-right" className="text-xl" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

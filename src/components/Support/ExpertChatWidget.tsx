@@ -62,9 +62,12 @@ export default function ExpertChatWidget(props: {
     ? 'bottom-[5.5rem] sm:bottom-6'
     : 'bottom-4 sm:bottom-6'
 
+  const MAX_CHAT_PER_VALUATION = 5
+
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
+  const [chatCount, setChatCount] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: id(),
@@ -77,6 +80,10 @@ export default function ExpertChatWidget(props: {
 
   const listRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    setChatCount(0)
+  }, [price, priceLow, priceHigh])
 
   useEffect(() => {
     if (!open) return
@@ -117,7 +124,6 @@ export default function ExpertChatWidget(props: {
       }
       const scenario = t.includes('ngập máy') || t.includes('vào máy') ? 'ngập máy' : t.includes('ngập sàn') ? 'ngập sàn' : 'ngập nước'
       const ratio = scenario === 'ngập máy' ? 0.5 : scenario === 'ngập sàn' ? 0.25 : 0.35
-      const remain = clampNonNegative(Math.round(bp * (1 - ratio)))
       const reason =
         scenario === 'ngập máy'
           ? 'ngập máy (rủi ro đại tu + độ tin cậy về sau)'
@@ -170,9 +176,16 @@ export default function ExpertChatWidget(props: {
   async function onSend(textRaw?: string) {
     const text = (textRaw ?? draft).trim()
     if (!text || sending) return
+
+    if (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION) {
+      toast.error(`Đã dùng hết ${MAX_CHAT_PER_VALUATION} lượt chat cho lần định giá này. Định giá lại để tiếp tục hỏi.`)
+      return
+    }
+
     pushUser(text)
     setDraft('')
     setSending(true)
+    if (!onDashboard) setChatCount((c) => c + 1)
 
     try {
       const history = messages.slice(-8).map((m) => ({ role: m.role, text: m.text }))
@@ -212,8 +225,8 @@ export default function ExpertChatWidget(props: {
           aria-label='Mở hỗ trợ chuyên sâu'
         >
           <span className='relative flex h-3 w-3 shrink-0'>
-            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
-            <span className='relative inline-flex h-3 w-3 rounded-full bg-emerald-500'></span>
+            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75'></span>
+            <span className='relative inline-flex h-3 w-3 rounded-full bg-blue-500'></span>
           </span>
           <Icon icon='tabler:messages' className='text-xl shrink-0' />
           <span className='text-sm font-bold sm:text-base'>
@@ -233,7 +246,7 @@ export default function ExpertChatWidget(props: {
                   <div className='font-extrabold'>Hỗ trợ chuyên sâu</div>
                   <div className='text-xs text-white/80 flex items-center gap-2'>
                     <span className='inline-flex items-center gap-1'>
-                      <span className='inline-block w-2 h-2 rounded-full bg-emerald-400' />
+                      <span className='inline-block w-2 h-2 rounded-full bg-blue-400' />
                       Online 24/7
                     </span>
                   </div>
@@ -256,7 +269,8 @@ export default function ExpertChatWidget(props: {
                     key={q}
                     type='button'
                     onClick={() => onSend(q)}
-                    className='text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-gray-200 hover:border-primary/40 hover:bg-primary/5 transition text-gray-700'
+                    disabled={!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION}
+                    className='text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-gray-200 hover:border-primary/40 hover:bg-primary/5 transition text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
                   >
                     {q}
                   </button>
@@ -298,27 +312,32 @@ export default function ExpertChatWidget(props: {
                     ref={inputRef}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder='Hỏi nhanh: "ngập nước thì còn bao nhiêu?"'
-                    disabled={sending}
-                    className='relative w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all font-medium bg-white'
+                    placeholder={!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION ? 'Hết lượt chat — định giá lại để tiếp tục' : 'Hỏi nhanh: "ngập nước thì còn bao nhiêu?"'}
+                    disabled={sending || (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION)}
+                    className='relative w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all font-medium bg-white disabled:bg-gray-50 disabled:text-gray-400'
                   />
                 </div>
                 <button
                   type='submit'
-                  disabled={sending}
-                  className='px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap'
+                  disabled={sending || (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION)}
+                  className='px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:scale-100 disabled:shadow-none'
                 >
                   <Icon icon='tabler:send' className='text-lg' />
                   <span className='hidden sm:inline'>{sending ? 'Đang gửi...' : 'Gửi'}</span>
                 </button>
               </form>
 
-              <div className='mt-2 text-xs text-gray-500 font-medium'>
-                {basePrice == null ? (
-                  <span>Chưa có giá để tính theo tình huống.</span>
-                ) : (
-                  <span>
-                    Giá tham chiếu: <b className='text-primary'>{formatVND(basePrice)}</b>
+              <div className='mt-2 flex items-center justify-between text-xs text-gray-500 font-medium'>
+                <span>
+                  {basePrice == null ? (
+                    'Chưa có giá để tính theo tình huống.'
+                  ) : (
+                    <>Giá tham chiếu: <b className='text-primary'>{formatVND(basePrice)}</b></>
+                  )}
+                </span>
+                {!onDashboard && (
+                  <span className={chatCount >= MAX_CHAT_PER_VALUATION ? 'text-red-500 font-bold' : 'text-gray-400'}>
+                    {MAX_CHAT_PER_VALUATION - chatCount}/{MAX_CHAT_PER_VALUATION} lượt
                   </span>
                 )}
               </div>

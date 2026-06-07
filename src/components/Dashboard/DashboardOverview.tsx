@@ -61,13 +61,13 @@ export default function DashboardOverview() {
       icon: 'tabler:users',
       title: 'Lead khách website',
       desc: 'Khách định giá trên trang chủ — đầy đủ SĐT, mua/bán, xe và giá để sales gọi.',
-      color: 'from-emerald-500 to-teal-600',
+      color: 'from-blue-500 to-blue-700',
     },
     {
       icon: 'tabler:report-analytics',
       title: 'Báo cáo chuyên sâu',
       desc: 'Rủi ro, thanh khoản, gợi ý giá bán nhanh / giữ giá.',
-      color: 'from-amber-500 to-orange-500',
+      color: 'from-blue-500 to-blue-700',
     },
     {
       icon: 'tabler:photo-scan',
@@ -79,7 +79,7 @@ export default function DashboardOverview() {
       icon: 'tabler:chart-line',
       title: 'Tham chiếu thị trường',
       desc: 'Crawl Chợ Tốt & Bonbanh + AI Gemini có kiểm soát.',
-      color: 'from-cyan-500 to-blue-600',
+      color: 'from-blue-400 to-blue-600',
     },
   ]
 

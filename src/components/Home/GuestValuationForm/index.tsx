@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react/dist/iconify.js'
-import data from '../../../../data.json'
+import { vehicleCatalog } from '@/lib/vehicle-catalog-data'
 import toast from 'react-hot-toast'
+import { isValidVNPhone, normalizeVNPhone } from '@/utils/validatePhone'
 
 interface Brand { id: string; name: string; models: Model[] }
 interface Model { id: string; name: string; years: YearEntry[] }
@@ -11,7 +12,7 @@ interface YearEntry { year: number; versions: Version[] }
 interface Version { name: string; colors: string[] }
 
 const inputClass =
-  'w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none'
+  'w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none placeholder:text-slate-400'
 
 export default function GuestValuationForm() {
   const [brands, setBrands] = useState<Brand[]>([])
@@ -41,7 +42,7 @@ export default function GuestValuationForm() {
   const [lastLead, setLastLead] = useState({ fullName: '', intent: '', phone: '' })
 
   useEffect(() => {
-    setBrands(data.brands)
+    setBrands(vehicleCatalog.brands)
   }, [])
 
   useEffect(() => {
@@ -119,9 +120,8 @@ export default function GuestValuationForm() {
       toast.error('Vui lòng chọn bạn muốn mua hay bán xe')
       return false
     }
-    const phoneNorm = phone.trim().replace(/\s/g, '').replace(/^\+84/, '0')
-    if (!/^0[0-9]{9,10}$/.test(phoneNorm)) {
-      toast.error('Số điện thoại không hợp lệ (vd: 0901234567)')
+    if (!isValidVNPhone(phone)) {
+      toast.error('Số điện thoại không hợp lệ (vd: 0901234567 — 10 số)')
       return false
     }
     return true
@@ -153,6 +153,7 @@ export default function GuestValuationForm() {
           year: parseInt(selectedYear, 10),
           color: selectedColor,
           mileage: parseInt(String(mileage).replace(/\D/g, ''), 10) || 0,
+          intent,
         }),
       })
       const resData = await res.json()
@@ -169,7 +170,7 @@ export default function GuestValuationForm() {
 
       const leadPayload = {
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: normalizeVNPhone(phone),
         intent,
         brand: getBrandName(),
         model: getModelName(),
@@ -254,6 +255,7 @@ export default function GuestValuationForm() {
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         disabled={field.disabled}
+                        style={{ colorScheme: 'light' }}
                         className={`${inputClass} disabled:opacity-50`}>
                         <option value="">{field.label}</option>
                         {field.options.map((o) => (
@@ -268,7 +270,10 @@ export default function GuestValuationForm() {
                   <div className="relative">
                     <input
                       type="number"
-                      placeholder="Số km đã đi"
+                      placeholder="Số km đã đi (vd: 50000)"
+                      min="0"
+                      max="999999"
+                      inputMode="numeric"
                       value={mileage}
                       onChange={(e) => setMileage(e.target.value)}
                       className={inputClass}
@@ -298,35 +303,88 @@ export default function GuestValuationForm() {
 
               <div className="min-h-[280px] lg:col-span-5">
                 {valuationLoading ? (
-                  <div className="flex h-full min-h-[280px] items-center justify-center rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 p-8">
+                  /* ── LOADING ── */
+                  <div className="flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-slate-50 p-8">
                     <div className="text-center">
-                      <Icon icon="tabler:loader" className="mx-auto text-5xl text-primary animate-spin" />
-                      <p className="mt-4 font-semibold text-gray-600">Đang phân tích thị trường...</p>
+                      <div className="relative mx-auto mb-5 h-16 w-16">
+                        <div className="absolute inset-0 rounded-full border-4 border-primary/15" />
+                        <div className="absolute inset-0 animate-spin rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent" />
+                        <Icon icon="tabler:car" className="absolute inset-0 m-auto text-2xl text-primary/50" />
+                      </div>
+                      <p className="font-bold text-slate-700">Đang phân tích thị trường…</p>
+                      <p className="mt-1 text-xs text-slate-400">AI đang tính toán khoảng giá tham chiếu</p>
                     </div>
                   </div>
+
                 ) : price !== null || priceLow != null ? (
-                  <div className="flex h-full min-h-[280px] items-center justify-center rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 p-8">
-                  <div className="text-center w-full">
-                    <p className="text-sm text-emerald-600 font-semibold mb-2">✓ Đã có kết quả — bấm xem chi tiết</p>
-                    <p className="text-3xl font-black text-primary">
-                      {priceLow != null && priceHigh != null
-                        ? `${(priceLow / 1e6).toFixed(0)} – ${(priceHigh / 1e6).toFixed(0)} triệu`
-                        : price != null
-                          ? `${(price / 1e6).toFixed(0)} triệu`
-                          : '—'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setShowResultModal(true)}
-                      className="mt-4 text-primary font-bold underline">
-                      Mở báo cáo đầy đủ
-                    </button>
+                  /* ── KẾT QUẢ ── */
+                  <div className="relative h-full min-h-[280px] overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/8 via-blue-50 to-blue-100/50">
+                    {/* decorative blobs */}
+                    <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-primary/10 blur-2xl" />
+                    <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-blue-300/20 blur-xl" />
+
+                    <div className="relative flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+                      {/* badge */}
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-primary shadow-sm backdrop-blur-sm">
+                        <Icon icon="tabler:sparkles" className="text-sm" />
+                        Kết quả AI định giá
+                      </span>
+
+                      {/* price */}
+                      <div>
+                        <p className="text-xs font-medium text-slate-500">Khoảng giá tham chiếu</p>
+                        <p className="mt-1 text-[2.6rem] font-black leading-none tracking-tight text-midnight_text">
+                          {priceLow != null && priceHigh != null
+                            ? `${(priceLow / 1e6).toFixed(0)}–${(priceHigh / 1e6).toFixed(0)}`
+                            : price != null
+                              ? (price / 1e6).toFixed(0)
+                              : '—'}
+                          <span className="ml-1 text-xl font-semibold text-slate-400">triệu</span>
+                        </p>
+                        {priceLow != null && priceHigh != null && (
+                          <p className="mt-1 text-[11px] text-slate-400">
+                            {priceLow.toLocaleString('vi-VN')} – {priceHigh.toLocaleString('vi-VN')} đ
+                          </p>
+                        )}
+                      </div>
+
+                      {/* range bar */}
+                      {priceLow != null && priceHigh != null && (
+                        <div className="w-40 overflow-hidden rounded-full bg-blue-100/80 h-1.5">
+                          <div className="h-full w-full rounded-full bg-gradient-to-r from-primary to-blue-400" />
+                        </div>
+                      )}
+
+                      {/* CTA */}
+                      <button
+                        type="button"
+                        onClick={() => setShowResultModal(true)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-blue-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:opacity-90 hover:scale-[1.03]">
+                        <Icon icon="tabler:file-analytics" className="text-base" />
+                        Xem báo cáo đầy đủ
+                      </button>
+                    </div>
                   </div>
-                  </div>
+
                 ) : (
-                  <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 p-8 text-center text-gray-400">
-                    <Icon icon="tabler:car" className="mx-auto text-6xl text-gray-300" />
-                    <p className="mt-4 font-medium">Điền form bên trái để nhận giá tham chiếu</p>
+                  /* ── PLACEHOLDER ── */
+                  <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-blue-200 bg-blue-50/30 p-8 text-center">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm">
+                      <Icon icon="tabler:car" className="text-3xl text-blue-300" />
+                    </div>
+                    <p className="font-semibold text-slate-500">Kết quả hiển thị tại đây</p>
+                    <p className="mt-1 text-xs text-slate-400">Chọn đủ thông tin xe rồi bấm định giá</p>
+                    <div className="mt-5 flex items-center gap-2 text-[11px] text-slate-400">
+                      {['Chọn xe', 'Điền liên hệ', 'Xem giá'].map((step, i) => (
+                        <span key={step} className="flex items-center gap-2">
+                          {i > 0 && <span className="text-slate-300">›</span>}
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                            {i + 1}
+                          </span>
+                          {step}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -396,10 +454,13 @@ export default function GuestValuationForm() {
                 <input
                   type="tel"
                   placeholder="0901234567"
+                  maxLength={11}
+                  inputMode="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className={inputClass}
                 />
+                <p className="text-xs text-slate-400 mt-1">10 số — bắt đầu 03x / 07x / 08x / 09x</p>
               </div>
             </div>
 
@@ -434,8 +495,8 @@ export default function GuestValuationForm() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon icon="tabler:circle-check" className="text-4xl text-emerald-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon icon="tabler:circle-check" className="text-4xl text-blue-600" />
               </div>
               <h3 className="text-2xl font-black text-midnight_text">Kết quả định giá</h3>
               <p className="text-sm text-slate-500 mt-2">
@@ -443,7 +504,7 @@ export default function GuestValuationForm() {
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-primary/20 mb-6">
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100/60 border border-primary/20 mb-6">
               <p className="text-sm text-gray-600 text-center mb-1">Khoảng giá tham chiếu</p>
               {priceLow != null && priceHigh != null ? (
                 <>

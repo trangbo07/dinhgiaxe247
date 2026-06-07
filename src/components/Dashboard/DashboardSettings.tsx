@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
 import type { BusinessProfile } from '@/lib/business-profile'
+import { isValidVNPhone } from '@/utils/validatePhone'
 
 type TabId = 'profile' | 'account' | 'notifications' | 'preferences'
 
@@ -88,6 +89,10 @@ export default function DashboardSettings() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (profile.phone && !isValidVNPhone(profile.phone)) {
+      toast.error('Số điện thoại không hợp lệ (vd: 0901234567)')
+      return
+    }
     void saveProfile({
       companyName: profile.companyName,
       contactName: profile.contactName,
@@ -213,7 +218,10 @@ export default function DashboardSettings() {
                 onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
                 className={inputClass}
                 placeholder="0901234567"
+                maxLength={11}
+                inputMode="tel"
               />
+              <p className="text-xs text-slate-400 mt-1">10 số, bắt đầu bằng 03x / 07x / 08x / 09x</p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-midnight_text mb-1.5">
@@ -330,7 +338,7 @@ export default function DashboardSettings() {
             <button
               type="submit"
               disabled={changingPassword}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
               {changingPassword ? (
                 <Icon icon="tabler:loader" className="animate-spin" />
               ) : (

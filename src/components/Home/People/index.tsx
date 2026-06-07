@@ -24,7 +24,7 @@ const People = () => {
                 </div>
               </div>
               <p className='font-medium text-2xl leading-9'>
-                "Hệ thống định giá xe giúp tôi đánh giá giá trị xe một cách dễ dàng. Những thông tin chi tiết về thị trường giúp tôi đưa ra quyết định mua bán xe đúng đắn, và thông báo nhắc nhở giúp tôi không bỏ lỡ cơ hội."
+                &ldquo;Hệ thống định giá xe giúp tôi đánh giá giá trị xe một cách dễ dàng. Những thông tin chi tiết về thị trường giúp tôi đưa ra quyết định mua bán xe đúng đắn, và thông báo nhắc nhở giúp tôi không bỏ lỡ cơ hội.&rdquo;
               </p>
             </div>
           </div>

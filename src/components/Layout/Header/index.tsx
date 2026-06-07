@@ -10,11 +10,8 @@ import SignUp from '@/components/Auth/SignUp'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import { headerItem } from '@/types/menu'
 import { useSession, signOut } from 'next-auth/react'
-import { useWallet } from '@/app/Providers'
-
 const Header: React.FC = () => {
   const { data: session } = useSession()
-  const { balance, isPro } = useWallet()
   const [headerData, setHeaderData] = useState<headerItem[]>([])
 
   const [navbarOpen, setNavbarOpen] = useState(false)
@@ -82,29 +79,19 @@ const Header: React.FC = () => {
     setSticky(window.scrollY >= 80)
   }
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      signInRef.current &&
-      !signInRef.current.contains(event.target as Node)
-    ) {
-      setIsSignInOpen(false)
-    }
-    if (
-      signUpRef.current &&
-      !signUpRef.current.contains(event.target as Node)
-    ) {
-      setIsSignUpOpen(false)
-    }
-    if (
-      mobileMenuRef.current &&
-      !mobileMenuRef.current.contains(event.target as Node) &&
-      navbarOpen
-    ) {
-      setNavbarOpen(false)
-    }
-  }
-
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (signInRef.current && !signInRef.current.contains(event.target as Node)) {
+        setIsSignInOpen(false)
+      }
+      if (signUpRef.current && !signUpRef.current.contains(event.target as Node)) {
+        setIsSignUpOpen(false)
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && navbarOpen) {
+        setNavbarOpen(false)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll)
     document.addEventListener('mousedown', handleClickOutside)
     return () => {

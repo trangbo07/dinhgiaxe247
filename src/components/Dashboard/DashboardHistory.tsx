@@ -64,7 +64,7 @@ export default function DashboardHistory() {
       </div>
 
       {error && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+        <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-900">
           <p className="font-semibold">Chưa kết nối được Supabase</p>
           <p className="mt-1">{error}</p>
           <ol className="mt-3 text-xs list-decimal list-inside space-y-1">
@@ -80,13 +80,13 @@ export default function DashboardHistory() {
               , copy <strong>service_role</strong> (secret)
             </li>
             <li>
-              Dán vào <code className="bg-amber-100 px-1 rounded">.env</code>:{' '}
+              Dán vào <code className="bg-blue-100 px-1 rounded">.env</code>:{' '}
               <code>SUPABASE_SERVICE_ROLE_KEY=eyJ...</code>
             </li>
             <li>Restart <code>npm run dev</code></li>
             <li>
               Chạy SQL{' '}
-              <code className="bg-amber-100 px-1 rounded">supabase/migrations/001_valuations.sql</code>
+              <code className="bg-blue-100 px-1 rounded">supabase/migrations/001_valuations.sql</code>
             </li>
           </ol>
         </div>

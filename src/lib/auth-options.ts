@@ -41,10 +41,13 @@ export const authOptions: NextAuthOptions = {
           (typeof meta.name === "string" && meta.name.trim()) ||
           email.split("@")[0];
 
+        const role = (data.user.app_metadata?.role as string) ?? null;
+
         return {
           id: data.user.id,
           name,
           email: data.user.email ?? email,
+          role,
         };
         } catch (err) {
           if (err instanceof Error) throw err;
@@ -62,6 +65,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.role = user.role ?? null;
       }
       return token;
     },
@@ -70,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.email = (token.email as string) ?? session.user.email;
         session.user.name = (token.name as string) ?? session.user.name;
+        session.user.role = (token.role as string) ?? null;
       }
       return session;
     },

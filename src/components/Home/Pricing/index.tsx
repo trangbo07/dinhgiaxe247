@@ -18,8 +18,7 @@ const Pricing = () => {
   const [selectedCategory, setSelectedCategory] = useState<'personal' | 'business'>('personal')
 
   useEffect(() => {
-    const email = (session?.user as any)?.email as string | undefined
-    syncFreeUsageForUser(email ?? null)
+    syncFreeUsageForUser(session?.user?.email ?? null)
   }, [session, syncFreeUsageForUser])
 
   const handleBuy = (planName: string, planPrice: number) => {
@@ -29,8 +28,8 @@ const Pricing = () => {
     }
     if (!session) {
       toast.error('Vui lòng đăng nhập để mua gói!')
-      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
-        (window as any).openSignInModal()
+      if (typeof window !== 'undefined' && typeof (window as { openSignInModal?: () => void }).openSignInModal === 'function') {
+        (window as { openSignInModal?: () => void }).openSignInModal?.()
       }
       return
     }
@@ -167,7 +166,7 @@ const Pricing = () => {
                               <div className='flex-shrink-0 mt-1'>
                                 <Icon
                                   icon='tabler:check-circle-filled'
-                                  className={`${isSinglePlan ? 'text-base' : 'text-lg'} ${isBusiness ? 'text-blue-500' : 'text-emerald-500'}`}
+                                  className={`${isSinglePlan ? 'text-base' : 'text-lg'} text-blue-500`}
                                 />
                               </div>
                               <p className='text-gray-700 font-medium text-sm leading-relaxed'>{feature}</p>

@@ -24,9 +24,9 @@ export type GuestLead = {
   created_at: string
 }
 
-const statusLabels: Record<string, { label: string; className: string }> = {
+export const statusLabels: Record<string, { label: string; className: string }> = {
   moi: { label: 'Mới', className: 'bg-blue-100 text-blue-800' },
-  da_lien_he: { label: 'Đã liên hệ', className: 'bg-amber-100 text-amber-800' },
+  da_lien_he: { label: 'Đã liên hệ', className: 'bg-blue-100 text-blue-800' },
   dong: { label: 'Đóng', className: 'bg-slate-100 text-slate-600' },
 }
 
@@ -148,7 +148,7 @@ export default function DashboardGuestLeads() {
               type="button"
               onClick={() => setFilterStatus(v)}
               className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold sm:px-4 sm:py-2.5 ${
-                filterStatus === v ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 shadow-sm'
+                filterStatus === v ? 'bg-primary text-white' : 'bg-white text-slate-600 shadow-sm'
               }`}>
               {v === 'all' ? 'Tất cả' : statusLabels[v]?.label ?? v}
             </button>
@@ -157,10 +157,10 @@ export default function DashboardGuestLeads() {
       </div>
 
       {error && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+        <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-900">
           <p className="font-semibold">{error}</p>
           <p className="mt-2 text-xs">
-            Chạy <code className="bg-amber-100 px-1 rounded">002_guest_leads.sql</code> và cấu hình{' '}
+            Chạy <code className="bg-blue-100 px-1 rounded">002_guest_leads.sql</code> và cấu hình{' '}
             <code>SUPABASE_SERVICE_ROLE_KEY</code>
           </p>
         </div>

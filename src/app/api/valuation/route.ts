@@ -199,6 +199,39 @@ function clampToMarket(
   return { low, high, adjusted: low !== aiLow || high !== aiHigh }
 }
 
+/** Trừ biên thương lượng khi khách muốn mua (giá rao bán thường cao hơn giá chốt mua). */
+const BUY_INTENT_DEDUCTION_VND = 65_000_000
+
+function isBuyIntent(intent: unknown) {
+  if (typeof intent !== 'string') return false
+  const n = intent.trim().toLowerCase()
+  return n === 'mua' || n === 'buy'
+}
+
+type ValuationPayload = {
+  price: number
+  priceLow: number
+  priceHigh: number
+  explanation: string
+  [key: string]: unknown
+}
+
+function applyBuyIntentAdjustment<T extends ValuationPayload>(payload: T, intent: unknown): T {
+  if (!isBuyIntent(intent)) return payload
+  const priceLow = Math.max(0, payload.priceLow - BUY_INTENT_DEDUCTION_VND)
+  const priceHigh = Math.max(priceLow + 5_000_000, payload.priceHigh - BUY_INTENT_DEDUCTION_VND)
+  const price = Math.round((priceLow + priceHigh) / 2)
+  const note =
+    ' Giá mua tham khảo: đã trừ khoảng 60–70 triệu so với giá rao bán thị trường (mức thương lượng phổ biến khi mua xe cũ).'
+  return {
+    ...payload,
+    price,
+    priceLow,
+    priceHigh,
+    explanation: `${payload.explanation}${note}`,
+  }
+}
+
 function fallbackValuation(year?: number, mileage?: number) {
   const nowYear = new Date().getFullYear()
   const safeYear = Number.isFinite(year) ? Number(year) : nowYear - 5
@@ -234,7 +267,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { brand, model, year, color, mileage } = body
+    const { brand, model, year, color, mileage, intent } = body
     const parsedYear = Number(year)
     const parsedMileage = Number(mileage)
 
@@ -250,19 +283,29 @@ export async function POST(request: NextRequest) {
       const finalLow = Math.min(low, high - 5_000_000)
       const finalHigh = Math.max(high, finalLow + 5_000_000)
       const finalPrice = Math.round((finalLow + finalHigh) / 2)
-      return NextResponse.json({
-        price: finalPrice,
-        priceLow: finalLow,
-        priceHigh: finalHigh,
-        explanation:
-          'Định giá được suy ra trực tiếp từ dữ liệu thị trường trong 30 ngày gần nhất (Chợ Tốt/Bonbanh), đã lọc outlier để tránh giá ảo.',
-        source: 'market',
-        marketInsights,
-      })
+      return NextResponse.json(
+        applyBuyIntentAdjustment(
+          {
+            price: finalPrice,
+            priceLow: finalLow,
+            priceHigh: finalHigh,
+            explanation:
+              'Định giá được suy ra trực tiếp từ dữ liệu thị trường trong 30 ngày gần nhất (Chợ Tốt/Bonbanh), đã lọc outlier để tránh giá ảo.',
+            source: 'market',
+            marketInsights,
+          },
+          intent
+        )
+      )
     }
 
     if (!GEMINI_API_KEY) {
-      return NextResponse.json({ ...fallbackValuation(parsedYear, parsedMileage), marketInsights })
+      return NextResponse.json(
+        applyBuyIntentAdjustment(
+          { ...fallbackValuation(parsedYear, parsedMileage), marketInsights },
+          intent
+        )
+      )
     }
 
     const prompt = `Bạn là chuyên gia định giá xe ô tô. Hãy định giá chiếc xe sau:
@@ -309,12 +352,15 @@ Chỉ trả về đúng 3 dòng như trên, dùng số nguyên VND.`
       const errText = await response.text()
       console.error('gemini error', response.status, errText)
       return NextResponse.json(
-        {
-          ...fallbackValuation(parsedYear, parsedMileage),
-          warning: 'External API error',
-          details: errText,
-          marketInsights,
-        },
+        applyBuyIntentAdjustment(
+          {
+            ...fallbackValuation(parsedYear, parsedMileage),
+            warning: 'External API error',
+            details: errText,
+            marketInsights,
+          },
+          intent
+        ),
         { status: 200 }
       )
     }
@@ -332,10 +378,15 @@ Chỉ trả về đúng 3 dòng như trên, dùng số nguyên VND.`
     if (highMatch) priceHigh = parseInt(highMatch[1], 10)
 
     if (priceLow == null && priceHigh == null) {
-      return NextResponse.json({
-        ...fallbackValuation(parsedYear, parsedMileage),
-        warning: 'Không đọc được kết quả AI, đã dùng định giá tạm.',
-      })
+      return NextResponse.json(
+        applyBuyIntentAdjustment(
+          {
+            ...fallbackValuation(parsedYear, parsedMileage),
+            warning: 'Không đọc được kết quả AI, đã dùng định giá tạm.',
+          },
+          intent
+        )
+      )
     }
     if (priceLow == null && priceHigh != null) priceLow = Math.max(0, priceHigh - Math.max(20_000_000, Math.round(priceHigh * 0.05)))
     if (priceHigh == null && priceLow != null) priceHigh = priceLow + Math.max(20_000_000, Math.round(priceLow * 0.05))
@@ -356,14 +407,19 @@ Chỉ trả về đúng 3 dòng như trên, dùng số nguyên VND.`
       ? ' Giá đã được chuẩn hóa theo dữ liệu tham chiếu thị trường để tránh lệch quá cao/thấp.'
       : ''
 
-    return NextResponse.json({
-      price,
-      priceLow: finalLow,
-      priceHigh: finalHigh,
-      explanation: `${explanation || 'Không có thông tin trả về.'}${extra}`,
-      source: 'gemini',
-      marketInsights,
-    })
+    return NextResponse.json(
+      applyBuyIntentAdjustment(
+        {
+          price: price ?? 0,
+          priceLow: finalLow ?? 0,
+          priceHigh: finalHigh ?? 0,
+          explanation: `${explanation || 'Không có thông tin trả về.'}${extra}`,
+          source: 'gemini',
+          marketInsights,
+        },
+        intent
+      )
+    )
   } catch (err: unknown) {
     console.error('valuation api error', err)
     return NextResponse.json(

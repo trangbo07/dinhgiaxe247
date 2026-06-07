@@ -75,7 +75,7 @@ export function createSupabaseAuthClient() {
     throw new Error(err)
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl!, supabaseAnonKey!, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

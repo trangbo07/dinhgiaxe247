@@ -32,8 +32,9 @@ const ResetPassword = ({ token }: { token: string }) => {
             email: res.data.email,
           })
         }
-      } catch (error: any) {
-        toast.error(error?.response?.data)
+      } catch (error: unknown) {
+        const msg = (error as { response?: { data?: string } })?.response?.data ?? 'Token không hợp lệ'
+        toast.error(msg)
         router.push('/forgot-password')
       }
     }
@@ -71,8 +72,9 @@ const ResetPassword = ({ token }: { token: string }) => {
       }
 
       setLoader(false)
-    } catch (error: any) {
-      toast.error(error.response.data)
+    } catch (error: unknown) {
+      const msg = (error as { response?: { data?: string } })?.response?.data ?? 'Có lỗi xảy ra'
+      toast.error(msg)
       setLoader(false)
     }
   }

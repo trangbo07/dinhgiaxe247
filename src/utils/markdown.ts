@@ -14,11 +14,7 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
 
-  type Items = {
-    // [key: string]: string;
-    [key: string]: string | object;
-  };
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items: any = {};
 
   function processImages(content: string) {

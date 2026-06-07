@@ -1,0 +1,742 @@
+{
+  "brands": [
+    {
+      "id": "honda",
+      "models": [
+        {
+          "id": "brio",
+          "name": "Brio",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "G AT", "colors": ["Trắng", "Đen", "Đỏ", "Bạc"] },
+                { "name": "RS", "colors": ["Trắng", "Đen", "Đỏ", "Xanh"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "G AT", "colors": ["Trắng", "Đen", "Đỏ", "Bạc"] },
+                { "name": "RS", "colors": ["Trắng", "Đen", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "br-v",
+          "name": "BR-V",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "G", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] },
+                { "name": "L", "colors": ["Trắng", "Đen", "Đỏ", "Xám"] }
+              ]
+            },
+            {
+              "year": 2023,
+              "versions": [
+                { "name": "G", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] },
+                { "name": "L", "colors": ["Trắng", "Đen", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hyundai",
+      "models": [
+        {
+          "id": "creta",
+          "name": "Creta",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5 AT Tiêu chuẩn", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] },
+                { "name": "1.5 AT Đặc biệt", "colors": ["Trắng ngọc trai", "Đen", "Xám"] },
+                { "name": "N Line", "colors": ["Trắng", "Đen", "Đỏ"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "1.5 AT Đặc biệt", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] },
+                { "name": "1.5 Turbo N Line", "colors": ["Trắng", "Đen", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "stargazer",
+          "name": "Stargazer",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5 AT", "colors": ["Trắng", "Đen", "Bạc", "Xám"] },
+                { "name": "1.5 AT Premium", "colors": ["Trắng ngọc trai", "Đen", "Đỏ"] }
+              ]
+            },
+            {
+              "year": 2023,
+              "versions": [
+                { "name": "1.5 AT", "colors": ["Trắng", "Đen", "Bạc", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "custin",
+          "name": "Custin",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5T 8 chỗ", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "1.5T 7 chỗ", "colors": ["Trắng ngọc trai", "Đen", "Đỏ"] }
+              ]
+            },
+            {
+              "year": 2023,
+              "versions": [
+                { "name": "1.5T 8 chỗ", "colors": ["Trắng", "Đen", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "venue",
+          "name": "Venue",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.0 T-GDi", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] },
+                { "name": "1.0 T-GDi Đặc biệt", "colors": ["Trắng ngọc trai", "Đen", "Xanh"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "toyota",
+      "models": [
+        {
+          "id": "yaris-cross",
+          "name": "Yaris Cross",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5G CVT", "colors": ["Trắng ngọc trai", "Đen", "Xám", "Đỏ"] },
+                { "name": "1.5HV Hybrid", "colors": ["Trắng ngọc trai", "Đen", "Xanh"] }
+              ]
+            },
+            {
+              "year": 2023,
+              "versions": [
+                { "name": "1.5G CVT", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "veloz-cross",
+          "name": "Veloz Cross",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5 CVT", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] },
+                { "name": "1.5 CVT Top", "colors": ["Trắng ngọc trai", "Đen", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "1.5 CVT", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "avanza-premio",
+          "name": "Avanza Premio",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.5 CVT", "colors": ["Trắng", "Đen", "Bạc", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "1.5 CVT", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "alphard",
+          "name": "Alphard",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "2.5 HEV", "colors": ["Đen", "Trắng ngọc trai", "Bạc"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "3.5 V6", "colors": ["Đen", "Trắng", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "land-cruiser-prado",
+          "name": "Land Cruiser Prado",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "2.8 Diesel", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "2.8 Diesel", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mitsubishi",
+      "models": [
+        {
+          "id": "xforce",
+          "name": "Xforce",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "GLX", "colors": ["Trắng", "Đen", "Bạc", "Xám"] },
+                { "name": "Ultimate", "colors": ["Trắng ngọc trai", "Đen", "Đỏ", "Xanh"] }
+              ]
+            },
+            {
+              "year": 2023,
+              "versions": [
+                { "name": "GLX", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nissan",
+      "models": [
+        {
+          "id": "kicks",
+          "name": "Kicks",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "e-POWER E", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] },
+                { "name": "e-POWER V", "colors": ["Trắng ngọc trai", "Đen", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "e-POWER E", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "magnite",
+          "name": "Magnite",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.0 Turbo CVT", "colors": ["Trắng", "Đen", "Đỏ", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mercedes",
+      "models": [
+        {
+          "id": "gla",
+          "name": "GLA",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "GLA200 AMG Line", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "GLA200", "colors": ["Trắng", "Đen", "Bạc", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "g-class",
+          "name": "G-Class",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "G63 AMG", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lexus",
+      "name": "Lexus",
+      "models": [
+        {
+          "id": "rx",
+          "name": "RX",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "350h", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "500h F Sport", "colors": ["Trắng", "Đen", "Xanh", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "350", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "450h", "colors": ["Trắng", "Đen", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "nx",
+          "name": "NX",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "350h", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] },
+                { "name": "350h F Sport", "colors": ["Trắng", "Đen", "Xanh", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "300h", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "es",
+          "name": "ES",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "250", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "300h", "colors": ["Trắng", "Đen", "Xám", "Nâu"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "250", "colors": ["Trắng", "Đen", "Bạc"] },
+                { "name": "300h", "colors": ["Trắng", "Đen", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lx",
+          "name": "LX",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "600h", "colors": ["Đen", "Trắng", "Xám", "Bạc"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "570", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audi",
+      "name": "Audi",
+      "models": [
+        {
+          "id": "a3",
+          "name": "A3",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "35 TFSI", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "35 TFSI", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a4",
+          "name": "A4",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "40 TFSI", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "S line", "colors": ["Trắng", "Đen", "Đỏ", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "40 TFSI", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q5",
+          "name": "Q5",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "40 TFSI quattro", "colors": ["Trắng", "Đen", "Xám", "Bạc"] },
+                { "name": "S line", "colors": ["Trắng", "Đen", "Đỏ", "Xám"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "45 TFSI quattro", "colors": ["Trắng", "Đen", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q7",
+          "name": "Q7",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "45 TFSI quattro", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "volkswagen",
+      "name": "Volkswagen",
+      "models": [
+        {
+          "id": "polo",
+          "name": "Polo",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.6 MPI", "colors": ["Trắng", "Đen", "Bạc", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t-cross",
+          "name": "T-Cross",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.0 TSI", "colors": ["Trắng", "Đen", "Xám", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tiguan",
+          "name": "Tiguan",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "2.0 TSI Elegance", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "teramont",
+          "name": "Teramont",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "2.0 TSI", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "volvo",
+      "name": "Volvo",
+      "models": [
+        {
+          "id": "xc40",
+          "name": "XC40",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "Recharge Pure Electric", "colors": ["Trắng", "Đen", "Xám", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "xc60",
+          "name": "XC60",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "B5 Ultimate", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            },
+            {
+              "year": 2022,
+              "versions": [
+                { "name": "B6 Inscription", "colors": ["Trắng", "Đen", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "xc90",
+          "name": "XC90",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "B6 Ultimate", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "s90",
+          "name": "S90",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "B6 Ultimate", "colors": ["Trắng", "Đen", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "isuzu",
+      "name": "Isuzu",
+      "models": [
+        {
+          "id": "d-max",
+          "name": "D-Max",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.9L Prestige", "colors": ["Trắng", "Đen", "Bạc", "Xám"] },
+                { "name": "3.0L Type Z", "colors": ["Trắng", "Đen", "Xanh", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mu-x",
+          "name": "mu-X",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "1.9L Prestige", "colors": ["Trắng", "Đen", "Bạc", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "land-rover",
+      "name": "Land Rover",
+      "models": [
+        {
+          "id": "range-rover",
+          "name": "Range Rover",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "P530", "colors": ["Đen", "Trắng", "Xám", "Bạc"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "range-rover-sport",
+          "name": "Range Rover Sport",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "P400", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "defender",
+          "name": "Defender",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "110 P300", "colors": ["Đen", "Trắng", "Xám", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "discovery",
+          "name": "Discovery",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "P300", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "porsche",
+      "name": "Porsche",
+      "models": [
+        {
+          "id": "911",
+          "name": "911",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "Carrera", "colors": ["Đen", "Trắng", "Xám", "Đỏ"] },
+                { "name": "Turbo S", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cayenne",
+          "name": "Cayenne",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "3.0 V6", "colors": ["Đen", "Trắng", "Xám", "Bạc"] },
+                { "name": "Turbo GT", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "macan",
+          "name": "Macan",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "2.0", "colors": ["Đen", "Trắng", "Xám", "Đỏ"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "taycan",
+          "name": "Taycan",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "4S", "colors": ["Đen", "Trắng", "Xám", "Xanh"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "718-cayman",
+          "name": "718 Cayman",
+          "years": [
+            {
+              "year": 2024,
+              "versions": [
+                { "name": "Cayman", "colors": ["Đen", "Trắng", "Xám"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

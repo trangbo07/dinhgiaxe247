@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import ContactChannels from '@/components/Contact/ContactChannels'
 
 const stats = [
   { value: '30 ngày', label: 'Dữ liệu thị trường', icon: 'tabler:chart-line' },
@@ -26,8 +27,8 @@ const Hero = () => {
             <div className="mb-5 flex justify-center lg:justify-start">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-primary shadow-sm backdrop-blur-sm">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
                 </span>
                 ValuCar · Định giá AI thời gian thực
               </span>
@@ -35,14 +36,14 @@ const Hero = () => {
 
             <h1 className="mx-auto max-w-2xl text-center text-4xl font-black leading-tight tracking-tight text-midnight_text sm:text-5xl lg:mx-0 lg:text-start lg:text-[3.15rem] lg:leading-[1.12]">
               Biết giá xe{' '}
-              <span className="bg-gradient-to-r from-primary via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-blue-500 to-blue-400 bg-clip-text text-transparent">
                 trong vài phút
               </span>
               — minh bạch, có lý do.
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-center text-base leading-relaxed text-slate-600 sm:text-lg lg:mx-0 lg:text-start">
-              Dữ liệu Chợ Tốt & Bonbanh, AI Gemini và quy trình định giá ValuCar — khoảng giá tham chiếu
+              Dữ liệu Chợ Tốt & Bonbanh, tích hợp AI và quy trình định giá ValuCar — khoảng giá tham chiếu
               kèm giải thích rõ ràng theo tình trạng xe và thị trường.
             </p>
 
@@ -117,6 +118,12 @@ const Hero = () => {
             </div>
           </div>
         </div>
+
+        <ContactChannels
+          variant="hero"
+          title="Liên hệ ValuCar"
+          className="mx-auto max-w-4xl lg:max-w-none"
+        />
       </div>
     </section>
   )

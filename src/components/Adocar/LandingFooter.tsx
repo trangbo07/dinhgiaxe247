@@ -1,5 +1,4 @@
 "use client"
-import Link from "next/link"
 
 export default function LandingFooter() {
   return (
@@ -10,7 +9,7 @@ export default function LandingFooter() {
         <div className="flex items-center gap-3">
           <div className="text-slate-800 font-extrabold text-base tracking-tight">ValuCar</div>
           <div className="text-slate-300">|</div>
-          <div className="text-emerald-600 font-bold text-base tracking-tight">AdoCar</div>
+          <div className="text-blue-600 font-bold text-base tracking-tight">AdoCar</div>
         </div>
 
         {/* Copyright */}
@@ -24,13 +23,13 @@ export default function LandingFooter() {
             target="_blank" 
             rel="noreferrer" 
             href="https://www.facebook.com/profile.php?id=100064330291919"
-            className="text-slate-600 hover:text-emerald-600 transition-colors"
+            className="text-slate-600 hover:text-blue-600 transition-colors"
           >
             Facebook
           </a>
           <a 
             href="tel:0787866999"
-            className="text-slate-600 hover:text-emerald-600 transition-colors"
+            className="text-slate-600 hover:text-blue-600 transition-colors"
           >
             Hotline
           </a>
@@ -38,7 +37,7 @@ export default function LandingFooter() {
             target="_blank" 
             rel="noreferrer" 
             href="https://m.me/100064330291919"
-            className="text-slate-600 hover:text-emerald-600 transition-colors"
+            className="text-slate-600 hover:text-blue-600 transition-colors"
           >
             Messenger
           </a>

@@ -31,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [remainingFreeValuations, setRemainingFreeValuations] = useState(0);
   const [activeUserKey, setActiveUserKey] = useState<string | null>(null);
 
-  const maxFreePerMonth = 3;
+  const maxFreePerMonth = 5;
 
   const syncFreeUsageForUser = (userKey?: string | null) => {
     const key = (userKey ?? '').trim();

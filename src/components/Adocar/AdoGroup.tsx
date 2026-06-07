@@ -84,7 +84,7 @@ export default function AdoGroup() {
                 whileHover={{ y: -5 }}
                 className="rounded-2xl bg-slate-50 hover:bg-slate-900 p-6 border border-slate-100 hover:border-slate-900 transition-all duration-300 group"
               >
-                <div className="text-3xl font-extrabold text-slate-900 group-hover:text-emerald-400 transition-colors">
+                <div className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-400 transition-colors">
                   {item.value}
                 </div>
                 <div className="mt-2 text-sm font-bold text-slate-700 group-hover:text-white transition-colors">

@@ -72,7 +72,7 @@ export default function AboutAdo() {
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-100/80 px-4 py-1.5 rounded-full"
+              className="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-100/80 px-4 py-1.5 rounded-full"
             >
               Giải Pháp Di Chuyển Xanh
             </motion.span>
@@ -134,7 +134,7 @@ export default function AboutAdo() {
             >
               <a 
                 href="#rent" 
-                className="inline-flex items-center justify-center rounded-xl bg-slate-900 hover:bg-emerald-600 text-white hover:text-slate-950 font-bold px-6 py-3.5 shadow-lg transition-all duration-200"
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 hover:bg-primary text-white font-bold px-6 py-3.5 shadow-lg transition-all duration-200"
               >
                 Đặt Xe Nhận Ưu Đãi Ngay
               </a>

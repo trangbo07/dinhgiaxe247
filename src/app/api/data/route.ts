@@ -120,18 +120,8 @@ const FooterLinks: footerlLinksData[] = [
 const SocialLinks: socialLinksData[] = [
   {
     imgSrc: 'fa-brands:facebook-f',
-    link: 'www.facebook.com',
+    link: 'https://www.facebook.com/profile.php?id=61590451947338',
     width: 10,
-  },
-  {
-    imgSrc: 'fa6-brands:instagram',
-    link: 'www.instagram.com',
-    width: 14,
-  },
-  {
-    imgSrc: 'fa6-brands:twitter',
-    link: 'www.twitter.com',
-    width: 14,
   },
 ]
 

@@ -2,6 +2,9 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import ContactChannels from '@/components/Contact/ContactChannels'
+import { VALUCAR_CONTACT } from '@/lib/valucar-contact'
+import { isValidVNPhone } from '@/utils/validatePhone'
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -11,18 +14,16 @@ const ContactForm = () => {
     phnumber: '',
     Message: '',
   })
-  const [submitted, setSubmitted] = useState(false)
   const [showThanks, setShowThanks] = useState(false)
   const [loader, setLoader] = useState(false)
+  const [phoneError, setPhoneError] = useState('')
   const [isFormValid, setIsFormValid] = useState(false)
 
   useEffect(() => {
-    const isValid = Object.values(formData).every(
-      (value) => value.trim() !== ''
-    )
-    setIsFormValid(isValid)
+    const allFilled = Object.values(formData).every((value) => value.trim() !== '')
+    setIsFormValid(allFilled && isValidVNPhone(formData.phnumber))
   }, [formData])
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prevData) => ({
       ...prevData,
@@ -30,17 +31,20 @@ const ContactForm = () => {
     }))
   }
   const reset = () => {
-    formData.firstname = ''
-    formData.lastname = ''
-    formData.email = ''
-    formData.phnumber = ''
-    formData.Message = ''
+    setFormData({ firstname: '', lastname: '', email: '', phnumber: '', Message: '' })
+    setPhoneError('')
   }
-  const handleSubmit = async (e: any) => {
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!isValidVNPhone(formData.phnumber)) {
+      setPhoneError('Số điện thoại không hợp lệ (vd: 0901234567)')
+      return
+    }
+    setPhoneError('')
     setLoader(true)
 
-    fetch('https://formsubmit.co/ajax/arshvasani9@gmail.com', {
+    fetch(`https://formsubmit.co/ajax/${VALUCAR_CONTACT.email}`, {
       method: 'POST',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
@@ -53,21 +57,15 @@ const ContactForm = () => {
     })
       .then((response) => response.json())
       .then((data) => {
+        setLoader(false)
         if (data.success) {
-          setSubmitted(true)
           setShowThanks(true)
           reset()
-
-          setTimeout(() => {
-            setShowThanks(false)
-          }, 5000)
+          setTimeout(() => setShowThanks(false), 5000)
         }
-
-        reset()
       })
-      .catch((error) => {
+      .catch(() => {
         setLoader(false)
-        console.log(error.message)
       })
   }
   return (
@@ -78,9 +76,11 @@ const ContactForm = () => {
             Liên Hệ Với Chúng Tôi
           </h2>
           <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-            Có câu hỏi? Chúng tôi sẵn sàng trợ giúp và sẽ phản hồi trong vòng 24 giờ.
+            Gọi, email hoặc nhắn Facebook — hoặc điền form bên dưới, chúng tôi phản hồi trong 24 giờ.
           </p>
         </div>
+
+        <ContactChannels variant="cards" className="mb-10" />
 
         <div className='bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-12'>
           <form
@@ -143,11 +143,26 @@ const ContactForm = () => {
                   id='phnumber'
                   type='tel'
                   name='phnumber'
-                  placeholder='+84 123 456 789'
+                  placeholder='0901234567'
+                  maxLength={11}
+                  inputMode='tel'
                   value={formData.phnumber}
-                  onChange={handleChange}
-                  className='w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-base'
+                  onChange={(e) => {
+                    handleChange(e)
+                    if (phoneError) setPhoneError('')
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all text-base ${
+                    phoneError
+                      ? 'border-red-400 focus:border-red-400 focus:ring-4 focus:ring-red-100'
+                      : 'border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10'
+                  }`}
                 />
+                {phoneError && (
+                  <p className='mt-1 text-xs text-red-500 flex items-center gap-1'>
+                    <Icon icon='tabler:alert-circle' className='text-sm' />
+                    {phoneError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -189,8 +204,8 @@ const ContactForm = () => {
 
           {/* Success Message */}
           {showThanks && (
-            <div className='mt-4 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-700 font-bold'>
-              <Icon icon='tabler:check-circle' className='text-2xl text-emerald-500' />
+            <div className='mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100/60 border-2 border-blue-200 rounded-xl flex items-center gap-3 text-blue-700 font-bold'>
+              <Icon icon='tabler:check-circle' className='text-2xl text-blue-500' />
               <div>
                 <p>Cảm ơn bạn đã liên hệ!</p>
                 <p className='text-sm'>Chúng tôi sẽ phản hồi sớm.</p>

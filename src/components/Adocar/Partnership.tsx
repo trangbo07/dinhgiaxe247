@@ -8,21 +8,21 @@ export default function Partnership() {
       step: "01",
       title: "Định Giá AI Thông Minh",
       brand: "ValuCar",
-      color: "from-blue-500 to-cyan-500",
+      color: "from-primary to-blue-500",
       description: "Nhận kết quả thẩm định giá trị xe cũ nhanh chóng bằng công nghệ AI tiên tiến của ValuCar để tối ưu tài sản ban đầu."
     },
     {
       step: "02",
       title: "Giải Pháp Hợp Tác Xanh",
       brand: "ValuCar × AdoCar",
-      color: "from-cyan-500 to-emerald-500",
+      color: "from-blue-400 to-blue-600",
       description: "Nhận các chính sách ưu đãi trợ giá đặc biệt dành riêng cho khách hàng chuyển đổi từ xe xăng truyền thống sang xe điện."
     },
     {
       step: "03",
       title: "Trải Nghiệm Xe Điện EV",
       brand: "AdoCar",
-      color: "from-emerald-500 to-green-500",
+      color: "from-blue-600 to-blue-800",
       description: "Nâng tầm trải nghiệm di chuyển với dàn xe điện VinFast đời mới từ AdoCar: không tiếng ồn, không khí thải, tiết kiệm tối đa."
     }
   ]
@@ -30,19 +30,19 @@ export default function Partnership() {
   return (
     <section id="partnership" className="relative w-full bg-slate-50 py-24 overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-gradient-to-r from-blue-200/20 via-cyan-200/30 to-emerald-200/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-gradient-to-r from-blue-200/20 via-blue-100/30 to-blue-200/20 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.span 
+          <motion.span
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-100/80 px-4 py-1.5 rounded-full"
+            className="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-100/80 px-4 py-1.5 rounded-full"
           >
             Hợp Tác Toàn Diện
           </motion.span>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -51,7 +51,7 @@ export default function Partnership() {
           >
             Chiến Lược Công Nghệ & Di Chuyển Xanh
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -65,9 +65,9 @@ export default function Partnership() {
         {/* Visual Brand Connecting Flow Diagram */}
         <div className="flex flex-col items-center mb-16">
           <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-16">
-            
+
             {/* ValuCar Node */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -84,14 +84,14 @@ export default function Partnership() {
                 />
               </div>
               <div className="text-sm font-bold text-slate-800">ValuCar AI</div>
-              <div className="text-[10px] text-blue-500 font-semibold tracking-wider uppercase">Định giá xe</div>
+              <div className="text-[10px] text-blue-600 font-semibold tracking-wider uppercase">Định giá xe</div>
             </motion.div>
 
-            {/* Connection 1 (CSS Dotted Line instead of SVG) */}
+            {/* Connection 1 */}
             <div className="hidden md:block w-16 border-t-2 border-dashed border-slate-300" />
 
             {/* Collaboration Node */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -99,7 +99,7 @@ export default function Partnership() {
               whileHover={{ y: -4 }}
               className="flex flex-col items-center gap-3 bg-white p-6 rounded-2xl shadow-xl w-48 text-slate-800 relative border border-slate-100"
             >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full text-[9px] font-bold text-slate-950 uppercase tracking-widest">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-gradient-to-r from-primary to-blue-500 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">
                 Liên Kết
               </div>
               <div className="h-16 w-24 bg-slate-50 flex items-center justify-center p-2 rounded-xl border border-slate-200">
@@ -112,14 +112,14 @@ export default function Partnership() {
                 />
               </div>
               <div className="text-sm font-bold">Hành Trình Xanh</div>
-              <div className="text-[10px] text-emerald-600 font-semibold tracking-wider uppercase">Giải pháp tối ưu</div>
+              <div className="text-[10px] text-blue-600 font-semibold tracking-wider uppercase">Giải pháp tối ưu</div>
             </motion.div>
 
-            {/* Connection 2 (CSS Dotted Line instead of SVG) */}
+            {/* Connection 2 */}
             <div className="hidden md:block w-16 border-t-2 border-dashed border-slate-300" />
 
             {/* AdoCar Node */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -137,9 +137,9 @@ export default function Partnership() {
                 />
               </div>
               <div className="text-sm font-bold text-slate-800">AdoCar EV</div>
-              <div className="text-[10px] text-emerald-600 font-semibold tracking-wider uppercase">Thuê xe điện</div>
+              <div className="text-[10px] text-blue-600 font-semibold tracking-wider uppercase">Thuê xe điện</div>
             </motion.div>
-            
+
           </div>
         </div>
 
@@ -156,7 +156,7 @@ export default function Partnership() {
               className="relative bg-white rounded-3xl p-8 border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden"
             >
               <div className={`absolute top-0 right-0 h-24 w-24 bg-gradient-to-bl ${item.color} opacity-[0.03] group-hover:opacity-[0.06] rounded-bl-full transition-opacity`} />
-              
+
               <div className="flex justify-between items-center mb-6">
                 <span className={`text-4xl font-black bg-gradient-to-br ${item.color} bg-clip-text text-transparent`}>
                   {item.step}
@@ -165,11 +165,11 @@ export default function Partnership() {
                   {item.brand}
                 </span>
               </div>
-              
-              <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+
+              <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                 {item.title}
               </h3>
-              
+
               <p className="mt-4 text-sm text-slate-600 leading-relaxed">
                 {item.description}
               </p>

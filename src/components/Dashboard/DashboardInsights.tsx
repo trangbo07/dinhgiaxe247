@@ -50,7 +50,7 @@ export default function DashboardInsights() {
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="font-bold text-midnight_text flex items-center gap-2">
-            <Icon icon="tabler:bulb" className="text-amber-500 text-xl" />
+            <Icon icon="tabler:bulb" className="text-primary text-xl" />
             Tips định giá & bán xe
           </h3>
           <ul className="mt-4 space-y-4">

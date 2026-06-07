@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { Icon } from '@iconify/react/dist/iconify.js'
-import data from '../../../../data.json'
+import { vehicleCatalog } from '@/lib/vehicle-catalog-data'
 import { plansData } from '@/types/plans'
 import { useWallet } from '@/app/Providers'
 import { useSession } from 'next-auth/react'
@@ -135,13 +135,12 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   }, [explanation, mileage, selectedYear, price, priceLow, priceHigh])
 
   useEffect(() => {
-    setBrands(data.brands)
+    setBrands(vehicleCatalog.brands)
   }, [])
 
   useEffect(() => {
-    const email = (session?.user as any)?.email as string | undefined
-    if (email) syncFreeUsageForUser(email)
-    else syncFreeUsageForUser(null)
+    const email = session?.user?.email ?? null
+    syncFreeUsageForUser(email)
   }, [session, syncFreeUsageForUser])
 
   useEffect(() => {
@@ -342,19 +341,19 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   const calcPrice = async (override?: ValuationPayload): Promise<boolean> => {
     if (!session) {
       toast.error('Vui lòng đăng nhập để sử dụng tính năng định giá.')
-      if (!isDashboard && typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
-        ;(window as any).openSignInModal()
+      if (!isDashboard && typeof window !== 'undefined' && typeof (window as { openSignInModal?: () => void }).openSignInModal === 'function') {
+        ;(window as { openSignInModal?: () => void }).openSignInModal?.()
       }
       return false
     }
 
     if (!isDashboard) {
-      const email = (session.user as any)?.email as string | undefined
+      const email = session.user?.email ?? undefined
       if (email) syncFreeUsageForUser(email)
 
       const unlockedForThisRun = isPro || canUseValuation()
       if (!unlockedForThisRun) {
-        toast.error('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng đăng nhập dashboard doanh nghiệp.')
+        toast.error('Bạn đã dùng hết 5 lượt định giá miễn phí trong tháng. Vui lòng đăng nhập dashboard doanh nghiệp.')
         return false
       }
     }
@@ -383,7 +382,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
     setValuationLoading(true)
     try {
       if (!isDashboard && !isPro) {
-        const email = (session.user as any)?.email as string | undefined
+        const email = session.user?.email ?? undefined
         consumeValuationUse(email ?? null)
       }
       const res = await fetch('/api/valuation', {
@@ -491,7 +490,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
           )}
           {isDashboard && (
             <div className='relative z-10 mb-4 flex flex-wrap gap-2 sm:mb-6'>
-              <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200'>
+              <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200'>
                 <Icon icon="tabler:infinity" /> Không giới hạn lượt
               </span>
               <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold border border-violet-200'>
@@ -509,7 +508,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none'
+                    style={{ colorScheme: 'light' }}
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none'
                   >
                     <option value=''>Hãng xe</option>
                     {brands.map((b) => (
@@ -522,7 +522,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <select
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-gray-100'
+                    style={{ colorScheme: 'light' }}
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-slate-100'
                     disabled={!models.length}
                   >
                     <option value=''>Dòng xe</option>
@@ -537,7 +538,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-gray-100'
+                    style={{ colorScheme: 'light' }}
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-slate-100'
                     disabled={!years.length}
                   >
                     <option value=''>Năm sản xuất</option>
@@ -552,7 +554,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <select
                     value={selectedVersion}
                     onChange={(e) => setSelectedVersion(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-gray-100'
+                    style={{ colorScheme: 'light' }}
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-slate-100'
                     disabled={!versions.length}
                   >
                     <option value=''>Phiên bản</option>
@@ -567,7 +570,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <select
                     value={selectedColor}
                     onChange={(e) => setSelectedColor(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-gray-100'
+                    style={{ colorScheme: 'light' }}
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none disabled:opacity-50 disabled:bg-slate-100'
                     disabled={!colors.length}
                   >
                     <option value=''>Màu sắc</option>
@@ -584,7 +588,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                     placeholder='Số km đã đi'
                     value={mileage}
                     onChange={(e) => setMileage(e.target.value)}
-                    className='w-full appearance-none bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-gray-700 font-medium transition-all outline-none'
+                    className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none'
                   />
                   <Icon icon="tabler:road" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xl" />
                 </div>
@@ -604,7 +608,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   className='bg-white text-primary border-2 border-primary/20 px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all'
                   onClick={() => {
                     if (!session) {
-                      setProModalMessage('Vui lòng đăng nhập để sử dụng trợ lý định giá hình ảnh AI (gói Cá nhân giới hạn 3 lượt/tháng).')
+                      setProModalMessage('Vui lòng đăng nhập để sử dụng trợ lý định giá hình ảnh AI (gói Cá nhân giới hạn 5 lượt/tháng).')
                       setShowProRequiredModal(true)
                       return
                     }
@@ -612,7 +616,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                     // Gói Cá nhân cũng được dùng đầy đủ tính năng như Doanh nghiệp,
                     // nhưng chỉ giới hạn số lượt định giá theo tháng.
                     if (!isDashboard && !isPro && !canUseValuation()) {
-                      setProModalMessage('Bạn đã dùng hết 3 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
+                      setProModalMessage('Bạn đã dùng hết 5 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
                       setShowProRequiredModal(true)
                       return
                     }
@@ -635,99 +639,114 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
               </div>
               {!isDashboard && !isPro && (
                 <p className='text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mt-3 inline-block'>
-                  Gói Cá nhân: còn {remainingFreeValuations}/3 lượt định giá trong tháng này.
+                  Gói Cá nhân: còn {remainingFreeValuations}/5 lượt định giá trong tháng này.
                 </p>
               )}
             </div>
             <div className='lg:col-span-5 min-h-[280px]'>
               {valuationLoading ? (
-                <div className='flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8'>
-                <div className='text-center'>
-                  <div className='mb-6 h-20 flex items-center justify-center overflow-hidden'>
-                    <style>{`
-                    @keyframes carMove {
-                      0% { transform: translateX(-100px); opacity: 0; }
-                      10% { opacity: 1; }
-                      90% { opacity: 1; }
-                      100% { transform: translateX(500px); opacity: 0; }
-                    }
-                    .car-animation {
-                      animation: carMove 3s infinite;
-                    }
-                  `}</style>
-                    <div className='car-animation text-6xl'>🚗</div>
+                /* ── LOADING ── */
+                <div className='flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-slate-50 p-8'>
+                  <div className='text-center'>
+                    <div className='relative mx-auto mb-5 h-16 w-16'>
+                      <div className='absolute inset-0 rounded-full border-4 border-primary/15' />
+                      <div className='absolute inset-0 animate-spin rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent' />
+                      <Icon icon='tabler:car' className='absolute inset-0 m-auto text-2xl text-primary/50' />
+                    </div>
+                    <p className='font-bold text-slate-700'>Đang phân tích thị trường…</p>
+                    <p className='mt-1 text-xs text-slate-400'>AI đang tính toán khoảng giá tham chiếu</p>
                   </div>
-                  <p className='text-lg font-semibold text-gray-600'>
-                    Đang định giá
-                    <span className='inline-block w-6 text-left'>
-                      <style>{`
-                      @keyframes dots {
-                        0%, 20% { content: '.'; }
-                        40% { content: '..'; }
-                        60%, 100% { content: '...'; }
-                      }
-                      .dots-animation::after {
-                        content: '.';
-                        animation: dots 1.5s infinite;
-                      }
-                    `}</style>
-                      <span className='dots-animation'></span>
-                    </span>
-                  </p>
                 </div>
-                </div>
+
               ) : price !== null || priceLow !== null || priceHigh !== null ? (
-                <div className='flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8 text-center'>
-                  <p className='text-xl font-semibold text-gray-600 mb-2'>Giá trong khoảng</p>
-                  {(() => {
-                    const low = priceLow ?? (price != null ? price - Math.max(15_000_000, Math.round(price * 0.025)) : null)
-                    const high = priceHigh ?? (price != null ? price + Math.max(15_000_000, Math.round(price * 0.025)) : null)
-                    const showLow = low != null ? Math.max(0, low) : null
-                    const showHigh = high ?? null
-                    if (showLow != null && showHigh != null) {
+                /* ── KẾT QUẢ ── */
+                <div className='relative h-full min-h-[280px] overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/8 via-blue-50 to-blue-100/50'>
+                  {/* decorative blobs */}
+                  <div className='pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-primary/10 blur-2xl' />
+                  <div className='pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-blue-300/20 blur-xl' />
+
+                  <div className='relative flex h-full flex-col items-center justify-center gap-3 p-6 text-center'>
+                    {/* badge */}
+                    <span className='inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-primary shadow-sm backdrop-blur-sm'>
+                      <Icon icon='tabler:sparkles' className='text-sm' />
+                      Kết quả AI định giá
+                    </span>
+
+                    {/* price */}
+                    {(() => {
+                      const low = priceLow ?? (price != null ? price - Math.max(15_000_000, Math.round(price * 0.025)) : null)
+                      const high = priceHigh ?? (price != null ? price + Math.max(15_000_000, Math.round(price * 0.025)) : null)
+                      const showLow = low != null ? Math.max(0, low) : null
+                      const showHigh = high ?? null
+                      if (showLow != null && showHigh != null) {
+                        return (
+                          <div>
+                            <p className='text-xs font-medium text-slate-500'>Khoảng giá tham chiếu</p>
+                            <p className='mt-1 text-[2.4rem] font-black leading-none tracking-tight text-midnight_text sm:text-[2.7rem]'>
+                              {(showLow / 1_000_000).toFixed(0)}–{(showHigh / 1_000_000).toFixed(0)}
+                              <span className='ml-1 text-xl font-semibold text-slate-400'>triệu</span>
+                            </p>
+                            <p className='mt-1 text-[11px] text-slate-400'>
+                              {showLow.toLocaleString('vi-VN')} – {showHigh.toLocaleString('vi-VN')} đ
+                            </p>
+                          </div>
+                        )
+                      }
+                      const single = price ?? priceLow ?? priceHigh ?? 0
                       return (
-                        <>
-                          <p className='text-4xl sm:text-5xl font-bold text-primary mb-1'>
-                            {(showLow / 1_000_000).toFixed(0)} – {(showHigh / 1_000_000).toFixed(0)} triệu
+                        <div>
+                          <p className='text-xs font-medium text-slate-500'>Giá tham chiếu</p>
+                          <p className='mt-1 text-[2.7rem] font-black leading-none tracking-tight text-midnight_text'>
+                            {(single / 1_000_000).toFixed(0)}
+                            <span className='ml-1 text-xl font-semibold text-slate-400'>triệu</span>
                           </p>
-                          <p className='text-sm text-gray-500 mb-4'>
-                            Khoảng giá tham khảo thị trường
-                          </p>
-                        </>
+                          <p className='mt-1 text-[11px] text-slate-400'>{single.toLocaleString('vi-VN')} đ</p>
+                        </div>
                       )
-                    }
-                    const single = price ?? priceLow ?? priceHigh ?? 0
-                    return (
-                      <>
-                        <p className='text-5xl font-bold text-primary mb-1'>
-                          {(single / 1_000_000).toFixed(0)} triệu
-                        </p>
-                        <p className='text-sm text-gray-500 mb-4'>
-                          {single.toLocaleString('vi-VN')} đ
-                        </p>
-                      </>
-                    )
-                  })()}
-                  <button
-                    className='bg-gradient-to-r from-primary to-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-105 transition-all'
-                    onClick={handleViewDetails}
-                  >
-                    Xem Báo Cáo Chi Tiết
-                  </button>
-                  <p className='text-xs text-gray-500 mt-3'>
-                    Cần hỏi tình huống đặc biệt (ngập nước, va quệt, sơn lại...)? Bấm nút chat góc phải để được tư vấn nhanh.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 p-8 text-gray-400">
-                  <div className="mb-2 flex h-32 w-32 items-center justify-center rounded-full bg-gray-100">
-                    <Icon icon="tabler:car-suv" className="text-6xl text-gray-300" />
+                    })()}
+
+                    {/* range bar */}
+                    <div className='w-40 overflow-hidden rounded-full bg-blue-100/80 h-1.5'>
+                      <div className='h-full w-full rounded-full bg-gradient-to-r from-primary to-blue-400' />
+                    </div>
+
+                    {/* CTA */}
+                    <button
+                      type='button'
+                      onClick={handleViewDetails}
+                      className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-blue-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:opacity-90 hover:scale-[1.03]'
+                    >
+                      <Icon icon='tabler:file-analytics' className='text-base' />
+                      Xem Báo Cáo Chi Tiết
+                    </button>
+
+                    {/* chat hint */}
+                    <p className='max-w-[240px] text-[11px] leading-relaxed text-slate-400'>
+                      Ngập nước, va quệt, sơn lại...? Bấm{' '}
+                      <span className='font-semibold text-primary'>chat góc phải</span> để tư vấn nhanh.
+                    </p>
                   </div>
-                  <p className="text-center font-medium">
-                    Nhập thông tin xe của bạn
-                    <br />
-                    để nhận định giá tức thì
-                  </p>
+                </div>
+
+              ) : (
+                /* ── PLACEHOLDER ── */
+                <div className='flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-blue-200 bg-blue-50/30 p-8 text-center'>
+                  <div className='mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm'>
+                    <Icon icon='tabler:car-suv' className='text-3xl text-blue-300' />
+                  </div>
+                  <p className='font-semibold text-slate-500'>Kết quả hiển thị tại đây</p>
+                  <p className='mt-1 text-xs text-slate-400'>Nhập thông tin xe rồi bấm định giá</p>
+                  <div className='mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400'>
+                    {['Chọn xe', 'Điền thông tin', 'Xem giá'].map((step, i) => (
+                      <span key={step} className='flex items-center gap-2'>
+                        {i > 0 && <span className='text-slate-300'>›</span>}
+                        <span className='flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary'>
+                          {i + 1}
+                        </span>
+                        {step}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -755,7 +774,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
             <div className='p-6'>
               {(priceLow != null && priceHigh != null) || price != null ? (
-                <div className='mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-primary rounded-lg'>
+                <div className='mb-8 p-6 bg-gradient-to-r from-blue-50 to-blue-100/60 border-2 border-primary rounded-lg'>
                   <p className='text-gray-600 text-center mb-2'>Giá thực tế (tham khảo)</p>
                   {priceLow != null && priceHigh != null ? (
                     <>
@@ -844,7 +863,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                           <ul className='space-y-2 text-sm text-slate-700'>
                             {proValuation.actionPlan.map((line, idx) => (
                               <li key={idx} className='flex gap-2'>
-                                <Icon icon='tabler:circle-check-filled' className='text-emerald-500 mt-0.5 shrink-0' />
+                                <Icon icon='tabler:circle-check-filled' className='text-blue-500 mt-0.5 shrink-0' />
                                 <span>{line}</span>
                               </li>
                             ))}
@@ -974,7 +993,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                                 <div key={idx} className='flex gap-4 pt-4'>
                                   <Icon
                                     icon='tabler:circle-check-filled'
-                                    className='text-2xl text-emerald-400 shrink-0'
+                                    className='text-2xl text-blue-400 shrink-0'
                                   />
                                   <p className='text-lg font-medium text-black/60 group-hover:text-white/60'>
                                     {feature}
@@ -1010,6 +1029,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
             </div>
             <div className='flex flex-col items-center w-full px-6 py-4'>
               <div className='w-full flex justify-center mb-3'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageFile ? URL.createObjectURL(imageFile) : '/images/car/anh3.png'}
                   alt='Ảnh xe'
@@ -1068,6 +1088,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
             <h2 className='text-2xl font-bold text-primary mb-4 text-center'>Đang phân tích bằng AI...</h2>
             <div className='relative w-50 h-33 mb-4'>
               {imageFile ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={URL.createObjectURL(imageFile)}
                   alt='Đang phân tích'
@@ -1135,8 +1156,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <button
                     onClick={() => {
                       setShowProRequiredModal(false);
-                      if (typeof window !== 'undefined' && typeof (window as any).openSignInModal === 'function') {
-                        (window as any).openSignInModal();
+                      if (typeof window !== 'undefined' && typeof (window as { openSignInModal?: () => void }).openSignInModal === 'function') {
+                        (window as { openSignInModal?: () => void }).openSignInModal?.();
                       } else {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         toast('Vui lòng bấm Đăng Nhập ở góc trên màn hình.', { icon: 'ℹ️' });
@@ -1149,8 +1170,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                     type='button'
                     onClick={() => {
                       setShowProRequiredModal(false);
-                      if (typeof window !== 'undefined' && typeof (window as any).openSignUpModal === 'function') {
-                        (window as any).openSignUpModal();
+                      if (typeof window !== 'undefined' && typeof (window as { openSignUpModal?: () => void }).openSignUpModal === 'function') {
+                        (window as { openSignUpModal?: () => void }).openSignUpModal?.();
                       } else {
                         window.location.href = '/signup';
                       }

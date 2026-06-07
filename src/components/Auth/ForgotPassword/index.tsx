@@ -11,7 +11,7 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('')
   const [loader, setLoader] = useState(false)
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!email) {
@@ -39,8 +39,9 @@ const ForgotPassword = () => {
 
       setEmail('')
       setLoader(false)
-    } catch (error: any) {
-      toast.error(error?.response.data)
+    } catch (error: unknown) {
+      const msg = (error as { response?: { data?: string } })?.response?.data ?? 'Có lỗi xảy ra'
+      toast.error(msg)
       setLoader(false)
     }
   }
