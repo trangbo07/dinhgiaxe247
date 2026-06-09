@@ -1,4 +1,4 @@
-import { Poppins } from 'next/font/google'
+import { Be_Vietnam_Pro } from 'next/font/google'
 import type { Metadata } from 'next'
 import './globals.css'
 import LayoutChrome from '@/components/Layout/LayoutChrome'
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   },
 }
 
-const font = Poppins({
-  subsets: ['latin'],
+const font = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
   weight: ['400', '500', '600', '700'],
 })
 
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='vi' suppressHydrationWarning>
       <body className={`${font.className}`}>
         <Providers>
           <Aoscompo>
