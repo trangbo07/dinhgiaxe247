@@ -2,6 +2,7 @@ export type plansData = {
   category: string[]
   heading: string
   button: string
+  isUltraTrial?: boolean
   price: {
     monthly: number
     yearly: number

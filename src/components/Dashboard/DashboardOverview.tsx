@@ -107,6 +107,12 @@ export default function DashboardOverview() {
             Khách ({guestLeads})
           </Link>
           <Link
+            href="/dashboard/reports"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-sm font-bold hover:bg-white/25 sm:flex-none sm:justify-start">
+            <Icon icon="tabler:report-analytics" className="text-xl" />
+            Báo cáo
+          </Link>
+          <Link
             href="/dashboard/history"
             className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-sm font-bold hover:bg-white/25 sm:flex-none sm:justify-start">
             <Icon icon="tabler:history" className="text-xl" />

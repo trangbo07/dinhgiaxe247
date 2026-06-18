@@ -57,6 +57,55 @@ function checkWindows(key: string, rules: WindowRule[]): RateLimitResult {
   return { allowed: true };
 }
 
+/** Chống spam nhanh theo IP khi so sánh xe. */
+export function rateLimitGuestCompare(ip: string): RateLimitResult {
+  return checkWindows(`guest-compare:${ip}`, [{ windowMs: 20 * 1000, max: 1 }])
+}
+
+/** Giới hạn so sánh xe theo thiết bị — mặc định 5 lượt / tháng. */
+export function rateLimitDeviceCompare(deviceId: string): RateLimitResult {
+  const max = envInt('RATE_GUEST_COMPARE_PER_DEVICE', 5)
+  const monthKey = new Date().toISOString().slice(0, 7)
+
+  const result = checkWindows(`guest-compare-dev:${deviceId}:${monthKey}`, [
+    { windowMs: 32 * 24 * 60 * 60 * 1000, max },
+  ])
+
+  if (!result.allowed) {
+    return {
+      ...result,
+      reason: `Bạn đã dùng hết ${max} lượt so sánh xe trên thiết bị này trong tháng. Đăng ký tài khoản hoặc thử lại tháng sau.`,
+    }
+  }
+
+  return result
+}
+
+export function getDeviceCompareQuota(deviceId: string): {
+  used: number
+  max: number
+  remaining: number
+} {
+  const max = envInt('RATE_GUEST_COMPARE_PER_DEVICE', 5)
+  const monthKey = new Date().toISOString().slice(0, 7)
+  const key = `guest-compare-dev:${deviceId}:${monthKey}`
+  const windowMs = 32 * 24 * 60 * 60 * 1000
+  const now = Date.now()
+  const used = (buckets.get(key) ?? []).filter((t) => now - t < windowMs).length
+  return { used, max, remaining: Math.max(0, max - used) }
+}
+
+export function rateLimitAuthCompare(userId: string): RateLimitResult {
+  const perHour = envInt('RATE_AUTH_COMPARE_PER_HOUR', 40)
+  const perDay = envInt('RATE_AUTH_COMPARE_PER_DAY', 150)
+
+  return checkWindows(`auth-compare:${userId}`, [
+    { windowMs: 10 * 1000, max: 1 },
+    { windowMs: 60 * 60 * 1000, max: perHour },
+    { windowMs: 24 * 60 * 60 * 1000, max: perDay },
+  ])
+}
+
 /** Khách (landing): chặn spam crawl + Gemini. */
 export function rateLimitGuestValuation(ip: string): RateLimitResult {
   const burstSec = envInt("RATE_GUEST_VALUATION_BURST_SEC", 5);
@@ -110,6 +159,18 @@ export function rateLimitGuestLeads(ip: string): RateLimitResult {
 
   return checkWindows(`guest-lead:${ip}`, [
     { windowMs: 10 * 1000, max: 1 },
+    { windowMs: 60 * 60 * 1000, max: perHour },
+    { windowMs: 24 * 60 * 60 * 1000, max: perDay },
+  ]);
+}
+
+/** Khách chat AI sau định giá (giới hạn chặt hơn user đăng nhập). */
+export function rateLimitGuestChat(ip: string): RateLimitResult {
+  const perHour = envInt("RATE_GUEST_CHAT_PER_HOUR", 25);
+  const perDay = envInt("RATE_GUEST_CHAT_PER_DAY", 80);
+
+  return checkWindows(`guest-chat:${ip}`, [
+    { windowMs: 2 * 1000, max: 1 },
     { windowMs: 60 * 60 * 1000, max: perHour },
     { windowMs: 24 * 60 * 60 * 1000, max: perDay },
   ]);

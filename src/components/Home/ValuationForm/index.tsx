@@ -17,6 +17,7 @@ import {
   findModel,
   findVersion,
 } from '@/lib/vehicle-catalog-match'
+import { PERSONAL_PLAN, formatValuationQuota } from '@/lib/plan-limits'
 
 interface Brand { id: string; name: string; models: Model[] }
 interface Model { id: string; name: string; years: YearEntry[] }
@@ -61,7 +62,16 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   const [showProRequiredModal, setShowProRequiredModal] = useState(false)
   const [proModalMessage, setProModalMessage] = useState('')
 
-  const { isPro, canUseValuation, consumeValuationUse, remainingFreeValuations, syncFreeUsageForUser } = useWallet()
+  const {
+    isPro,
+    accountType,
+    planName,
+    maxValuationsPerMonth,
+    canUseValuation,
+    consumeValuationUse,
+    remainingFreeValuations,
+    syncFreeUsageForUser,
+  } = useWallet()
   const { data: session } = useSession()
   const [businessAccessForCurrentResult, setBusinessAccessForCurrentResult] = useState(false)
   const proValuation = useMemo(() => {
@@ -140,7 +150,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
   useEffect(() => {
     const email = session?.user?.email ?? null
-    syncFreeUsageForUser(email)
+    const type = session?.user?.accountType ?? null
+    syncFreeUsageForUser(email, type)
   }, [session, syncFreeUsageForUser])
 
   useEffect(() => {
@@ -349,11 +360,16 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
     if (!isDashboard) {
       const email = session.user?.email ?? undefined
-      if (email) syncFreeUsageForUser(email)
+      if (email) syncFreeUsageForUser(email, session.user?.accountType ?? null)
 
       const unlockedForThisRun = isPro || canUseValuation()
       if (!unlockedForThisRun) {
-        toast.error('Bạn đã dùng hết 5 lượt định giá miễn phí trong tháng. Vui lòng đăng nhập dashboard doanh nghiệp.')
+        const isPersonal = accountType === 'personal' || session.user?.accountType === 'personal'
+        toast.error(
+          isPersonal
+            ? `Bạn đã dùng hết ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá tháng này. Vui lòng chờ sang tháng mới hoặc nâng cấp gói Doanh nghiệp.`
+            : 'Bạn đã dùng hết lượt dùng thử trong tháng. Vui lòng nâng cấp gói Doanh nghiệp tại mục Bảng giá.'
+        )
         return false
       }
     }
@@ -586,8 +602,13 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   <input
                     type='number'
                     placeholder='Số km đã đi'
+                    min={0}
+                    max={999999}
                     value={mileage}
-                    onChange={(e) => setMileage(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '')
+                      if (v === '' || Number(v) <= 999999) setMileage(v)
+                    }}
                     className='w-full appearance-none bg-white border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-5 py-3.5 text-slate-900 font-medium transition-all outline-none'
                   />
                   <Icon icon="tabler:road" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xl" />
@@ -608,15 +629,17 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   className='bg-white text-primary border-2 border-primary/20 px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all'
                   onClick={() => {
                     if (!session) {
-                      setProModalMessage('Vui lòng đăng nhập để sử dụng trợ lý định giá hình ảnh AI (gói Cá nhân giới hạn 5 lượt/tháng).')
+                      setProModalMessage(`Vui lòng đăng nhập để sử dụng định giá hình ảnh AI (${PERSONAL_PLAN.name}: dùng chung ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá/tháng).`)
                       setShowProRequiredModal(true)
                       return
                     }
 
-                    // Gói Cá nhân cũng được dùng đầy đủ tính năng như Doanh nghiệp,
-                    // nhưng chỉ giới hạn số lượt định giá theo tháng.
                     if (!isDashboard && !isPro && !canUseValuation()) {
-                      setProModalMessage('Bạn đã dùng hết 5 lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
+                      setProModalMessage(
+                        accountType === 'personal'
+                          ? `Bạn đã dùng hết ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá tháng này. Nâng cấp gói Doanh nghiệp để tiếp tục.`
+                          : 'Bạn đã dùng hết lượt dùng thử. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.'
+                      )
                       setShowProRequiredModal(true)
                       return
                     }
@@ -638,8 +661,14 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                 </button>
               </div>
               {!isDashboard && !isPro && (
-                <p className='text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mt-3 inline-block'>
-                  Gói Cá nhân: còn {remainingFreeValuations}/5 lượt định giá trong tháng này.
+                <p className={`text-sm rounded-lg px-4 py-2 mt-3 inline-block border ${
+                  accountType === 'personal'
+                    ? 'text-blue-700 bg-blue-50 border-blue-200'
+                    : 'text-amber-700 bg-amber-50 border-amber-200'
+                }`}>
+                  {accountType === 'personal'
+                    ? `${planName}: ${formatValuationQuota(remainingFreeValuations, maxValuationsPerMonth)}`
+                    : `Dùng thử: còn ${remainingFreeValuations}/${maxValuationsPerMonth} lượt tháng này`}
                 </p>
               )}
             </div>

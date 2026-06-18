@@ -13,6 +13,9 @@ import Pricing from '@/components/Home/Pricing'
 import LandingBusinessCta from '@/components/Home/LandingBusinessCta'
 import ContactForm from '@/components/Contact/Form'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import WorldCupSection from '@/components/WorldCupSection'
+import WorldCupHeroDecor from '@/components/WorldCupHeroDecor'
+import WorldCupDecorStrip from '@/components/WorldCupDecorStrip'
 
 export default function LandingPage() {
   const { status } = useSession()
@@ -50,13 +53,20 @@ export default function LandingPage() {
       {loginHint && (
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 py-3 text-center text-sm font-medium text-amber-900">
           <Icon icon="tabler:info-circle" className="mr-1 inline text-lg align-[-4px]" />
-          Đăng nhập doanh nghiệp để vào dashboard — lưu lịch sử & công cụ sales đầy đủ.
+          Đăng nhập để vào dashboard — lưu lịch sử & công cụ sales đầy đủ.
         </div>
       )}
 
-      <Hero />
+      <div className="relative">
+        <Hero />
+        <WorldCupHeroDecor />
+      </div>
 
-      <div className="relative bg-gradient-to-b from-slate-50/80 via-white to-white pb-4">
+      <WorldCupSection />
+
+      <WorldCupDecorStrip />
+
+      <div className="relative overflow-hidden bg-gradient-to-b from-slate-50/80 via-white to-white pb-4">
         <GuestValuationForm />
         <LandingTrustBand />
       </div>
@@ -64,7 +74,7 @@ export default function LandingPage() {
       <ValuationProcess />
       <Features />
 
-      <section className="bg-slate-50/50 py-4">
+      <section className="relative overflow-hidden bg-slate-50/50 py-4">
         <People />
       </section>
 

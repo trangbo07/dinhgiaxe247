@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
+import { useWallet } from '@/app/Providers'
 
 type ChatRole = 'user' | 'assistant'
 type ChatMessage = {
@@ -44,6 +45,8 @@ export default function ExpertChatWidget(props: {
   price: number | null
   priceLow: number | null
   priceHigh: number | null
+  /** Khách landing — cố định 5 lượt, không phụ thuộc wallet */
+  guestMode?: boolean
   vehicle?: {
     brand?: string
     model?: string
@@ -53,16 +56,18 @@ export default function ExpertChatWidget(props: {
     version?: string
   }
 }) {
-  const { enabled, price, priceLow, priceHigh, vehicle } = props
+  const { enabled, price, priceLow, priceHigh, guestMode = false, vehicle } = props
   const pathname = usePathname()
   const onDashboard = pathname?.startsWith('/dashboard') ?? false
+  const { maxChatPerValuation } = useWallet()
 
   const basePrice = useMemo(() => computeBasePrice(price, priceLow, priceHigh), [price, priceLow, priceHigh])
   const anchorBottom = onDashboard
     ? 'bottom-[5.5rem] sm:bottom-6'
     : 'bottom-4 sm:bottom-6'
 
-  const MAX_CHAT_PER_VALUATION = 5
+  const GUEST_CHAT_LIMIT = 5
+  const MAX_CHAT_PER_VALUATION = onDashboard ? 999 : guestMode ? GUEST_CHAT_LIMIT : maxChatPerValuation
 
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
@@ -73,8 +78,9 @@ export default function ExpertChatWidget(props: {
       id: id(),
       role: 'assistant',
       createdAt: Date.now(),
-      text:
-        'Xin chào! Mình là hỗ trợ chuyên sâu 24/7. Bạn cứ mô tả tình huống (ngập nước, va quệt, sơn lại...), mình sẽ ước tính ảnh hưởng lên giá sau khi định giá và gợi ý cách xử lý.',
+      text: guestMode
+        ? 'Xin chào! Bạn có **5 lượt hỏi miễn phí** sau định giá. Hỏi về giá có cao không, nên thương lượng bao nhiêu, hoặc tình trạng xe (ngập nước, sơn lại…).'
+        : 'Xin chào! Mình là hỗ trợ chuyên sâu 24/7. Bạn cứ mô tả tình huống (ngập nước, va quệt, sơn lại...), mình sẽ ước tính ảnh hưởng lên giá sau khi định giá và gợi ý cách xử lý.',
     },
   ])
 
@@ -97,13 +103,22 @@ export default function ExpertChatWidget(props: {
   }, [open, messages.length])
 
   const quickAsks = useMemo(
-    () => [
-      'Nếu bị ngập nước thì xe của tôi còn bao nhiều tiền?',
-      'Bị va quệt nhẹ thì trừ khoảng bao nhiêu?',
-      'Xe sơn lại 1-2 vị trí ảnh hưởng giá thế nào?',
-      'Muốn bán nhanh thì nên chốt mức nào?',
-    ],
-    []
+    () =>
+      guestMode
+        ? [
+            'Giá này có cao so với thị trường không?',
+            'Nên thương lượng giảm bao nhiêu %?',
+            'Xe này có đáng mua không?',
+            'Muốn bán nhanh thì chốt mức nào?',
+            'Ngập nước thì giảm bao nhiêu?',
+          ]
+        : [
+            'Nếu bị ngập nước thì xe của tôi còn bao nhiều tiền?',
+            'Bị va quệt nhẹ thì trừ khoảng bao nhiêu?',
+            'Xe sơn lại 1-2 vị trí ảnh hưởng giá thế nào?',
+            'Muốn bán nhanh thì nên chốt mức nào?',
+          ],
+    [guestMode]
   )
 
   function pushAssistant(text: string) {
@@ -177,8 +192,12 @@ export default function ExpertChatWidget(props: {
     const text = (textRaw ?? draft).trim()
     if (!text || sending) return
 
-    if (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION) {
-      toast.error(`Đã dùng hết ${MAX_CHAT_PER_VALUATION} lượt chat cho lần định giá này. Định giá lại để tiếp tục hỏi.`)
+    if (!onDashboard && !guestMode && chatCount >= MAX_CHAT_PER_VALUATION) {
+      toast.error(`Đã dùng hết ${MAX_CHAT_PER_VALUATION} lượt chat cho lần định giá này. Định giá lại hoặc nâng cấp gói để tiếp tục hỏi.`)
+      return
+    }
+    if (guestMode && chatCount >= MAX_CHAT_PER_VALUATION) {
+      toast.error(`Đã dùng hết ${GUEST_CHAT_LIMIT} lượt chat miễn phí. Đăng nhập để hỏi thêm hoặc định giá lại.`)
       return
     }
 
@@ -230,8 +249,10 @@ export default function ExpertChatWidget(props: {
           </span>
           <Icon icon='tabler:messages' className='text-xl shrink-0' />
           <span className='text-sm font-bold sm:text-base'>
-            <span className='sm:hidden'>Chat AI</span>
-            <span className='hidden sm:inline'>Hỗ trợ chuyên sâu 24/7</span>
+            <span className='sm:hidden'>Chat AI{guestMode ? ' (5 lượt)' : ''}</span>
+            <span className='hidden sm:inline'>
+              {guestMode ? 'Hỏi AI sau định giá (5 lượt)' : 'Hỗ trợ chuyên sâu 24/7'}
+            </span>
           </span>
         </button>
       ) : (
@@ -269,7 +290,7 @@ export default function ExpertChatWidget(props: {
                     key={q}
                     type='button'
                     onClick={() => onSend(q)}
-                    disabled={!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION}
+                    disabled={(!onDashboard || guestMode) && chatCount >= MAX_CHAT_PER_VALUATION}
                     className='text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-gray-200 hover:border-primary/40 hover:bg-primary/5 transition text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
                   >
                     {q}
@@ -312,14 +333,18 @@ export default function ExpertChatWidget(props: {
                     ref={inputRef}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION ? 'Hết lượt chat — định giá lại để tiếp tục' : 'Hỏi nhanh: "ngập nước thì còn bao nhiêu?"'}
-                    disabled={sending || (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION)}
+                    placeholder={
+                      (guestMode || !onDashboard) && chatCount >= MAX_CHAT_PER_VALUATION
+                        ? 'Hết lượt chat — định giá lại để tiếp tục'
+                        : 'Hỏi nhanh: "Giá này có cao không?"'
+                    }
+                    disabled={sending || ((guestMode || !onDashboard) && chatCount >= MAX_CHAT_PER_VALUATION)}
                     className='relative w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all font-medium bg-white disabled:bg-gray-50 disabled:text-gray-400'
                   />
                 </div>
                 <button
                   type='submit'
-                  disabled={sending || (!onDashboard && chatCount >= MAX_CHAT_PER_VALUATION)}
+                  disabled={sending || ((guestMode || !onDashboard) && chatCount >= MAX_CHAT_PER_VALUATION)}
                   className='px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:scale-100 disabled:shadow-none'
                 >
                   <Icon icon='tabler:send' className='text-lg' />
@@ -335,9 +360,10 @@ export default function ExpertChatWidget(props: {
                     <>Giá tham chiếu: <b className='text-primary'>{formatVND(basePrice)}</b></>
                   )}
                 </span>
-                {!onDashboard && (
+                {(!onDashboard || guestMode) && (
                   <span className={chatCount >= MAX_CHAT_PER_VALUATION ? 'text-red-500 font-bold' : 'text-gray-400'}>
                     {MAX_CHAT_PER_VALUATION - chatCount}/{MAX_CHAT_PER_VALUATION} lượt
+                    {guestMode ? ' miễn phí' : ''}
                   </span>
                 )}
               </div>

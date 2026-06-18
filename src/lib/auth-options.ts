@@ -42,12 +42,16 @@ export const authOptions: NextAuthOptions = {
           email.split("@")[0];
 
         const role = (data.user.app_metadata?.role as string) ?? null;
+        const rawType = meta.account_type as string | undefined;
+        const accountType: 'personal' | 'business' =
+          rawType === 'personal' ? 'personal' : 'business';
 
         return {
           id: data.user.id,
           name,
           email: data.user.email ?? email,
           role,
+          accountType,
         };
         } catch (err) {
           if (err instanceof Error) throw err;
@@ -66,6 +70,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.name = user.name;
         token.role = user.role ?? null;
+        token.accountType = user.accountType ?? 'business';
       }
       return token;
     },
@@ -75,6 +80,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = (token.email as string) ?? session.user.email;
         session.user.name = (token.name as string) ?? session.user.name;
         session.user.role = (token.role as string) ?? null;
+        session.user.accountType = (token.accountType as 'personal' | 'business') ?? 'business';
       }
       return session;
     },

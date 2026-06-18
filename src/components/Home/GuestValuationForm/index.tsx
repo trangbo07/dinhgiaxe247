@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import { vehicleCatalog } from '@/lib/vehicle-catalog-data'
 import toast from 'react-hot-toast'
+import WorldCupSectionDecor, { WorldCupSectionLabel } from '@/components/WorldCupSectionDecor'
 import { isValidVNPhone, normalizeVNPhone } from '@/utils/validatePhone'
+import ExpertChatWidget from '@/components/Support/ExpertChatWidget'
+import UsedCarChecklist from '@/components/Home/UsedCarChecklist'
+import { saveGuestValuationToStorage } from '@/components/Home/GuestChecklistSection'
 
 interface Brand { id: string; name: string; models: Model[] }
 interface Model { id: string; name: string; years: YearEntry[] }
@@ -168,6 +172,13 @@ export default function GuestValuationForm() {
       setPriceHigh(resData.priceHigh ?? null)
       setExplanation(resData.explanation || '')
 
+      saveGuestValuationToStorage({
+        priceLow: resData.priceLow ?? null,
+        priceHigh: resData.priceHigh ?? null,
+        brand: getBrandName(),
+        model: getModelName(),
+      })
+
       const leadPayload = {
         fullName: fullName.trim(),
         phone: normalizeVNPhone(phone),
@@ -220,8 +231,9 @@ export default function GuestValuationForm() {
 
   return (
     <>
-      <section id="valuation" className="relative z-10 -mt-6 scroll-mt-28 pb-16 lg:-mt-8 lg:pb-20">
-        <div className="container px-4">
+      <section id="valuation" className="relative z-10 -mt-6 scroll-mt-28 overflow-hidden pb-16 lg:-mt-8 lg:pb-20">
+        <WorldCupSectionDecor variant="valuation" led />
+        <div className="container relative z-10 px-4">
           <div className="relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.1)] lg:p-10">
             <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-100/60 blur-3xl" />
@@ -229,7 +241,7 @@ export default function GuestValuationForm() {
             <div className="relative z-10 mb-8 text-center">
               <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
                 <Icon icon="tabler:sparkles" className="text-sm" />
-                Bắt đầu ngay
+                <WorldCupSectionLabel index={2} compact>Bắt đầu ngay</WorldCupSectionLabel>
               </span>
               <h2 className="text-3xl font-black text-midnight_text md:text-4xl">
                 Định giá <span className="text-primary">miễn phí</span>
@@ -275,7 +287,10 @@ export default function GuestValuationForm() {
                       max="999999"
                       inputMode="numeric"
                       value={mileage}
-                      onChange={(e) => setMileage(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '')
+                        if (v === '' || Number(v) <= 999999) setMileage(v)
+                      }}
                       className={inputClass}
                     />
                     <Icon icon="tabler:road" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xl" />
@@ -485,7 +500,7 @@ export default function GuestValuationForm() {
 
       {showResultModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-8 relative shadow-2xl">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative shadow-2xl">
             <button
               type="button"
               onClick={() => setShowResultModal(false)}
@@ -537,6 +552,18 @@ export default function GuestValuationForm() {
               </div>
             )}
 
+            <div className="mb-6">
+              <p className="mb-3 text-sm font-bold text-midnight_text">
+                <Icon icon="tabler:clipboard-check" className="mr-1 inline text-primary" />
+                Checklist khi đi xem xe (gợi ý thương lượng)
+              </p>
+              <UsedCarChecklist
+                embedded
+                basePriceLow={priceLow}
+                basePriceHigh={priceHigh}
+              />
+            </div>
+
             <p className="text-xs text-slate-400 text-center mb-4">
               Thông tin của bạn đã được gửi tới hệ thống. Đối tác showroom có thể liên hệ qua số điện thoại đã để lại.
             </p>
@@ -550,6 +577,22 @@ export default function GuestValuationForm() {
           </div>
         </div>
       )}
+
+      <ExpertChatWidget
+        guestMode
+        enabled={price !== null || priceLow != null}
+        price={price}
+        priceLow={priceLow}
+        priceHigh={priceHigh}
+        vehicle={{
+          brand: getBrandName(),
+          model: getModelName(),
+          year: selectedYear,
+          color: selectedColor,
+          mileage,
+          version: selectedVersion,
+        }}
+      />
     </>
   )
 }

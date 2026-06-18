@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react/dist/iconify.js'
 import { useEffect, useState } from 'react'
 import { featureData } from '@/types/featuredata'
 import FeatureSkeleton from '@/components/Skeleton/Features'
+import WorldCupSectionDecor, { WorldCupSectionLabel, WorldCupIconAccent } from '@/components/WorldCupSectionDecor'
 
 const Features = () => {
   const [features, setFeatures] = useState<featureData[]>([])
@@ -28,11 +29,12 @@ const Features = () => {
   }, [])
 
   return (
-    <section id="features" className="scroll-mt-24 py-20 lg:py-28">
-      <div className="container px-4">
+    <section id="features" className="relative scroll-mt-24 overflow-hidden py-20 lg:py-28">
+      <WorldCupSectionDecor variant="features" />
+      <div className="container relative z-10 px-4">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            Tính năng
+            <WorldCupSectionLabel index={1}>Tính năng</WorldCupSectionLabel>
           </span>
           <h2 className="mt-2 text-3xl font-black text-midnight_text sm:text-4xl lg:text-5xl">
             Một nền tảng cho cả khách lẻ & showroom
@@ -48,17 +50,19 @@ const Features = () => {
             : features.map((item, i) => (
                 <div
                   key={i}
-                  className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  className="wc-feature-card group relative overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-primary/5 transition-transform group-hover:scale-150" />
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                    <Image
-                      src={item.imgSrc}
-                      alt=""
-                      width={40}
-                      height={40}
-                      className="opacity-90"
-                    />
-                  </div>
+                  <WorldCupIconAccent index={i}>
+                    <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                      <Image
+                        src={item.imgSrc}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="opacity-90"
+                      />
+                    </div>
+                  </WorldCupIconAccent>
                   <h3 className="relative mt-5 text-xl font-bold text-midnight_text">
                     {item.heading}
                   </h3>

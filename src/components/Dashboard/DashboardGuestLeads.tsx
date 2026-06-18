@@ -209,7 +209,7 @@ export default function DashboardGuestLeads() {
                   </a>
                   <p className="mt-1.5 truncate text-xs text-slate-400">
                     {new Date(lead.created_at).toLocaleString('vi-VN')}
-                    {lead.source ? ` · ${lead.source}` : ''}
+                 
                   </p>
                 </div>
                 <div className="min-w-0 shrink-0 rounded-xl bg-slate-50 p-3 sm:max-w-[50%] sm:text-right">

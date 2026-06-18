@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthSession } from '@/lib/auth-server'
-import { rateLimitAuthChat } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/client-ip'
+import { rateLimitAuthChat, rateLimitGuestChat } from '@/lib/rate-limit'
 import { rateLimitResponse } from '@/lib/api-rate-limit-response'
+import { fetchMarketInsights, aggregateMarket, formatMarketContext } from '@/lib/market-data'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
@@ -19,155 +21,19 @@ type VehicleContext = {
   version?: string
 }
 
-type MarketInsight = {
-  source: string
-  sampleCount: number
-  low: number | null
-  high: number | null
-  median: number | null
-  note: string
-}
-
-function normalizeQueryPart(v: unknown) {
-  return String(v ?? '').trim()
-}
-
-function toNumberFromText(raw: string) {
-  const digits = raw.replace(/[^\d]/g, '')
-  if (!digits) return null
-  const n = Number(digits)
-  return Number.isFinite(n) ? n : null
-}
-
-function median(values: number[]) {
-  if (!values.length) return null
-  const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  if (sorted.length % 2 === 0) return Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-  return sorted[mid]
-}
-
-function extractPricesFromHtml(html: string) {
-  const maxAgeDays = 20
-  const now = new Date()
-  const priceRegex = /(\d{2,4}(?:[.,]\d{3}){1,2}|\d{2,4})\s*(triệu|tr|tỷ|ty|đ|vnd)/gi
-  const values: number[] = []
-
-  function parseAgeDays(context: string): number | null {
-    const t = context.toLowerCase()
-    if (t.includes('hôm nay') || t.includes('hom nay') || t.includes('vừa đăng') || t.includes('mới đăng')) return 0
-    if (t.includes('hôm qua') || t.includes('hom qua')) return 1
-
-    const dayAgo = t.match(/(\d+)\s*ngày\s*trước/)
-    if (dayAgo) return Number(dayAgo[1])
-    const weekAgo = t.match(/(\d+)\s*tuần\s*trước/)
-    if (weekAgo) return Number(weekAgo[1]) * 7
-
-    const dateMatch = t.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/)
-    if (dateMatch) {
-      const d = Number(dateMatch[1])
-      const m = Number(dateMatch[2]) - 1
-      let y = Number(dateMatch[3])
-      if (y < 100) y += 2000
-      const posted = new Date(y, m, d)
-      const diffMs = now.getTime() - posted.getTime()
-      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-      return Number.isFinite(days) ? days : null
-    }
-    return null
-  }
-
-  let match: RegExpExecArray | null
-  while ((match = priceRegex.exec(html)) !== null) {
-    const amountRaw = match[1]
-    const unit = match[2].toLowerCase()
-    const contextStart = Math.max(0, match.index - 220)
-    const contextEnd = Math.min(html.length, match.index + match[0].length + 220)
-    const context = html.slice(contextStart, contextEnd)
-    const ageDays = parseAgeDays(context)
-
-    if (ageDays == null || ageDays > maxAgeDays) continue
-
-    const n = toNumberFromText(amountRaw)
-    if (n == null) continue
-    const price =
-      unit.includes('tỷ') || unit.includes('ty')
-        ? n * 1_000_000_000
-        : unit.includes('triệu') || unit.includes('tr')
-          ? n * 1_000_000
-          : n
-    if (price > 40_000_000 && price < 15_000_000_000) values.push(price)
-  }
-
-  return values
-}
-
-async function scrapeMarket(vehicle: VehicleContext): Promise<MarketInsight[]> {
-  const query = [
-    normalizeQueryPart(vehicle.brand),
-    normalizeQueryPart(vehicle.model),
-    normalizeQueryPart(vehicle.year),
-  ]
-    .filter(Boolean)
-    .join(' ')
-
-  if (!query) return []
-
-  const targets = [
-    { source: 'ChoTot', url: `https://xe.chotot.com/mua-ban-oto?q=${encodeURIComponent(query)}` },
-    { source: 'Bonbanh', url: `https://bonbanh.com/oto/?q=${encodeURIComponent(query)}` },
-  ]
-
-  const insights: MarketInsight[] = []
-  for (const target of targets) {
-    try {
-      const res = await fetch(target.url, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          Accept: 'text/html,application/xhtml+xml',
-        },
-        next: { revalidate: 0 },
-      })
-      if (!res.ok) {
-        insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null, note: `HTTP ${res.status}` })
-        continue
-      }
-      const html = await res.text()
-      const prices = extractPricesFromHtml(html).slice(0, 120)
-      if (!prices.length) {
-        insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null, note: 'Khong doc duoc gia tu trang.' })
-        continue
-      }
-      const low = Math.min(...prices)
-      const high = Math.max(...prices)
-      insights.push({
-        source: target.source,
-        sampleCount: prices.length,
-        low,
-        high,
-        median: median(prices),
-        note: 'Gia tham khao auto-crawl, can xac minh thu cong truoc khi chot giao dich.',
-      })
-    } catch {
-      insights.push({ source: target.source, sampleCount: 0, low: null, high: null, median: null, note: 'Khong ket noi duoc nguon.' })
-    }
-  }
-  return insights
-}
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getAuthSession()
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Chat AI chỉ dành cho tài khoản đã đăng nhập.' },
-        { status: 401 }
-      )
-    }
+    const isGuest = !session?.user?.id
 
-    const limited = rateLimitAuthChat(session.user.id)
-    if (!limited.allowed) return rateLimitResponse(limited)
+    if (isGuest) {
+      const ip = getClientIp(request)
+      const lim = rateLimitGuestChat(ip)
+      if (!lim.allowed) return rateLimitResponse(lim)
+    } else {
+      const lim = rateLimitAuthChat(session!.user!.id)
+      if (!lim.allowed) return rateLimitResponse(lim)
+    }
 
     const body = await request.json()
     const { message, history, basePrice, priceLow, priceHigh, vehicle } = body as {
@@ -179,43 +45,49 @@ export async function POST(request: NextRequest) {
       vehicle?: VehicleContext
     }
 
-    if (!message || !message.trim()) {
+    if (!message?.trim()) {
       return NextResponse.json({ error: 'Thiếu nội dung câu hỏi.' }, { status: 400 })
     }
     if (!GEMINI_API_KEY) {
       return NextResponse.json({ error: 'Thiếu GEMINI_API_KEY/GOOGLE_API_KEY.' }, { status: 503 })
     }
 
-    const marketInsights = await scrapeMarket(vehicle || {})
-    const marketContext =
-      marketInsights.length === 0
-        ? 'Khong co du lieu crawl thi truong.'
-        : marketInsights
-            .map((m) => {
-              const range = m.low != null && m.high != null ? `${m.low} - ${m.high}` : 'N/A'
-              return `- ${m.source}: mau=${m.sampleCount}, range=${range}, median=${m.median ?? 'N/A'}, note=${m.note}`
-            })
-            .join('\n')
+    // ── Fetch market data ────────────────────────────────────────────────
+    const v = vehicle ?? {}
+    const marketInsights = await fetchMarketInsights(
+      String(v.brand ?? ''),
+      String(v.model ?? ''),
+      v.year ?? ''
+    )
+    const market = aggregateMarket(marketInsights)
+    const marketBlock = formatMarketContext(marketInsights)
 
-    const context = `Bạn là trợ lý định giá xe ValuCar. Trả lời ngắn gọn, dễ hiểu, tiếng Việt.
-Nếu người dùng hỏi về ảnh hưởng đến giá, hãy tham chiếu mốc sau:
-- Giá giữa hiện tại: ${basePrice ?? 'chưa có'}
-- Giá thấp: ${priceLow ?? 'chưa có'}
-- Giá cao: ${priceHigh ?? 'chưa có'}
-Thông tin xe hiện tại:
-- Hãng: ${vehicle?.brand ?? 'chưa có'}
-- Model: ${vehicle?.model ?? 'chưa có'}
-- Năm: ${vehicle?.year ?? 'chưa có'}
-- Màu: ${vehicle?.color ?? 'chưa có'}
-- Km: ${vehicle?.mileage ?? 'chưa có'}
-Dữ liệu crawl thị trường:
-${marketContext}
-Không bịa dữ liệu kỹ thuật; khi thiếu dữ kiện thì hỏi thêm 1-2 thông tin cần thiết.
-Nếu có dữ liệu crawl thì phải trích dẫn ngắn theo dạng "Theo crawl Chợ Tốt/Bonbanh...".`
+    // ── Build system context ─────────────────────────────────────────────
+    const fmt = (n: unknown) =>
+      typeof n === 'number' ? n.toLocaleString('vi-VN') + ' VND' : String(n ?? 'chưa có')
 
+    const systemContext = `Bạn là chuyên gia tư vấn định giá xe ValuCar. Trả lời ngắn gọn, thực tế, bằng tiếng Việt.
+${isGuest ? 'Người dùng là KHÁCH (chưa đăng nhập) — trả lời súc tích, tối đa 120 từ.' : ''}
+
+THÔNG TIN XE ĐANG TƯ VẤN:
+- Hãng / Model: ${v.brand ?? 'chưa có'} ${v.model ?? ''}
+- Năm: ${v.year ?? 'chưa có'} | Màu: ${v.color ?? 'chưa có'} | ODO: ${v.mileage ? Number(v.mileage).toLocaleString('vi-VN') + ' km' : 'chưa có'}
+- Định giá hiện tại: ${fmt(basePrice)} (khoảng ${fmt(priceLow)} – ${fmt(priceHigh)})
+
+DỮ LIỆU THỊ TRƯỜNG THỰC TẾ (Chợ Tốt + Bonbanh, 30 ngày qua, đã lọc IQR):
+${marketBlock}
+${market ? `→ Trung vị tổng hợp: ${market.median.toLocaleString('vi-VN')} VND (${market.totalSamples} mẫu)` : '→ Chưa có dữ liệu thị trường.'}
+
+QUY TẮC TRẢ LỜI:
+- Trích dẫn nguồn "Theo Chợ Tốt/Bonbanh..." khi có dữ liệu.
+- Không bịa số liệu kỹ thuật.
+- Nếu thiếu thông tin, hỏi thêm 1–2 điểm cụ thể.
+- Giữ câu trả lời dưới 150 từ trừ khi cần phân tích chi tiết.`
+
+    // ── Build conversation ────────────────────────────────────────────────
     const normalizedHistory = Array.isArray(history) ? history.slice(-8) : []
     const contents = [
-      { role: 'user', parts: [{ text: context }] },
+      { role: 'user', parts: [{ text: systemContext }] },
       ...normalizedHistory.map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.text }],

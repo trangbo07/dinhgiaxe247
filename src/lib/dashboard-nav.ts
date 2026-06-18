@@ -4,10 +4,10 @@ export type DashboardNavItem = {
   shortLabel: string
   icon: string
   href: string
-  /** Hiện trên bottom bar mobile (tối đa 5) */
   mobileTab?: boolean
-  /** Chỉ hiện với tài khoản admin */
   adminOnly?: boolean
+  /** Chỉ hiện với tài khoản business */
+  businessOnly?: boolean
 }
 
 export const DASHBOARD_NAV: DashboardNavItem[] = [
@@ -26,6 +26,7 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: 'tabler:users',
     href: '/dashboard/leads',
     mobileTab: true,
+    businessOnly: true,
   },
   {
     id: 'valuation',
@@ -37,11 +38,20 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     id: 'history',
-    label: 'Lịch sử DN',
+    label: 'Lịch sử',
     shortLabel: 'Lịch sử',
     icon: 'tabler:history',
     href: '/dashboard/history',
     mobileTab: true,
+  },
+  {
+    id: 'reports',
+    label: 'Báo cáo',
+    shortLabel: 'Báo cáo',
+    icon: 'tabler:report-analytics',
+    href: '/dashboard/reports',
+    mobileTab: false,
+    businessOnly: true,
   },
   {
     id: 'insights',
@@ -49,6 +59,14 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     shortLabel: 'Tips',
     icon: 'tabler:bulb',
     href: '/dashboard/insights',
+    mobileTab: false,
+  },
+  {
+    id: 'plans',
+    label: 'Gói của tôi',
+    shortLabel: 'Gói',
+    icon: 'tabler:crown',
+    href: '/dashboard/plans',
     mobileTab: false,
   },
   {
@@ -99,7 +117,6 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
 ]
 
 export function isDashboardNavActive(pathname: string, href: string) {
-  // Exact match for root pages to avoid prefix collisions
   if (href === '/dashboard' || href === '/dashboard/admin') return pathname === href
   return pathname === href || pathname.startsWith(`${href}/`)
 }

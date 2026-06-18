@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react/dist/iconify.js'
 import ContactChannels from '@/components/Contact/ContactChannels'
 import { VALUCAR_CONTACT } from '@/lib/valucar-contact'
 import { isValidVNPhone } from '@/utils/validatePhone'
+import WorldCupSectionDecor, { WorldCupSectionLabel } from '@/components/WorldCupSectionDecor'
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -69,11 +70,12 @@ const ContactForm = () => {
       })
   }
   return (
-    <section id='contact' className='bg-gradient-to-br from-slate-50 to-white py-20'>
-      <div className='container px-4 max-w-4xl mx-auto'>
-        <div className='text-center mb-16'>
-          <h2 className='text-4xl sm:text-5xl font-black mb-4 text-midnight_text'>
-            Liên Hệ Với Chúng Tôi
+    <section id='contact' className='relative overflow-hidden bg-gradient-to-br from-slate-50 to-white py-20'>
+      <WorldCupSectionDecor variant="contact" led />
+      <div className='container relative z-10 mx-auto max-w-4xl px-4'>
+        <div className='mb-16 text-center'>
+          <h2 className='mb-4 text-4xl font-black text-midnight_text sm:text-5xl'>
+            <WorldCupSectionLabel index={4}>Liên Hệ Với Chúng Tôi</WorldCupSectionLabel>
           </h2>
           <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
             Gọi, email hoặc nhắn Facebook — hoặc điền form bên dưới, chúng tôi phản hồi trong 24 giờ.

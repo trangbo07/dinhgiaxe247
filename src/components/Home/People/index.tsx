@@ -1,11 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import WorldCupSectionDecor from '@/components/WorldCupSectionDecor'
 
 const People = () => {
   return (
-    <section className="scroll-mt-24 pb-12 pt-8 sm:pb-16" id="testimonials">
-      <div className="container px-4">
+    <section className="relative scroll-mt-24 overflow-hidden pb-12 pt-8 sm:pb-16" id="testimonials">
+      <WorldCupSectionDecor variant="people" />
+      <div className="container relative z-10 px-4">
         <div className='grid grid-cols-1 lg:grid-cols-12 space-x-1'>
           <div className='col-span-6 flex justify-center'>
             <div className="bg-Lightsuccess bg-[url('/images/people/bg-lines.png')] bg-no-repeat bg-contain bg-right-bottom w-full h-full flex flex-col gap-10 relative sm:py-11 py-14 sm:px-16 px-8 rounded-2xl after:absolute after:bg-[url('/images/people/quote.png')] after:w-48 after:h-40 after:-top-16 after:right-0">

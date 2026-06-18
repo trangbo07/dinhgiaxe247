@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import toast from 'react-hot-toast'
+import { downloadValuationDetailPdf } from '@/lib/business-report-pdf'
 
 type ValuationRow = {
   id: string
@@ -21,9 +24,39 @@ type ValuationRow = {
 }
 
 export default function DashboardHistory() {
+  const { data: session } = useSession()
+  const isBusiness = session?.user?.accountType !== 'personal'
+  const businessName = session?.user?.name ?? 'Doanh nghiệp'
   const [items, setItems] = useState<ValuationRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pdfId, setPdfId] = useState<string | null>(null)
+
+  const exportPdf = async (v: ValuationRow) => {
+    setPdfId(v.id)
+    try {
+      await downloadValuationDetailPdf({
+        businessName,
+        brand: v.brand,
+        model: v.model,
+        year: v.year,
+        version: v.version,
+        color: v.color,
+        mileage: v.mileage,
+        price: v.price,
+        priceLow: v.price_low,
+        priceHigh: v.price_high,
+        explanation: v.explanation,
+        createdAt: v.created_at,
+        source: v.source,
+      })
+      toast.success('Đã tải PDF định giá')
+    } catch {
+      toast.error('Không xuất được PDF')
+    } finally {
+      setPdfId(null)
+    }
+  }
 
   const load = () => {
     setLoading(true)
@@ -52,15 +85,27 @@ export default function DashboardHistory() {
           <h2 className="text-xl font-bold text-midnight_text sm:text-2xl">Lịch sử định giá</h2>
           <p className="text-sm text-slate-500 mt-1">
             Lưu lại mọi lượt định giá của bạn trên website.
+            {isBusiness && ' Xuất PDF chi tiết từng xe (gói doanh nghiệp).'}
           </p>
         </div>
-        <button
+        <div className="flex flex-wrap gap-2">
+          {isBusiness && (
+            <Link
+              href="/dashboard/reports"
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/15"
+            >
+              <Icon icon="tabler:report-analytics" />
+              Báo cáo tổng hợp
+            </Link>
+          )}
+          <button
           type="button"
           onClick={load}
           className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto">
           <Icon icon="tabler:refresh" />
           Làm mới
         </button>
+        </div>
       </div>
 
       {error && (
@@ -142,6 +187,23 @@ export default function DashboardHistory() {
                 <p className="mt-4 text-sm text-slate-600 leading-relaxed line-clamp-3 border-t border-slate-50 pt-4">
                   {v.explanation}
                 </p>
+              )}
+              {isBusiness && (
+                <div className="mt-4 flex justify-end border-t border-slate-50 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => exportPdf(v)}
+                    disabled={pdfId === v.id}
+                    className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {pdfId === v.id ? (
+                      <Icon icon="tabler:loader" className="animate-spin" />
+                    ) : (
+                      <Icon icon="tabler:file-type-pdf" />
+                    )}
+                    PDF chi tiết
+                  </button>
+                </div>
               )}
             </article>
           ))}

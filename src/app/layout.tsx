@@ -31,6 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='vi' suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('valucar_wc_theme');if(t==='1')document.documentElement.classList.add('worldcup-theme');}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${font.className}`}>
         <Providers>
           <Aoscompo>

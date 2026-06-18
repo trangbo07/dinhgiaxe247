@@ -17,7 +17,7 @@ const tabs: { id: TabId; label: string; icon: string }[] = [
 ]
 
 const inputClass =
-  'w-full bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-gray-700 font-medium transition-all outline-none'
+  'w-full min-w-0 bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-gray-700 font-medium transition-all outline-none'
 
 const emptyProfile = (email = ''): BusinessProfile => ({
   companyName: '',
@@ -146,7 +146,7 @@ export default function DashboardSettings() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
+    <div className="w-full min-w-0 mx-auto max-w-4xl space-y-5 sm:space-y-6">
       <div>
         <h2 className="text-xl font-bold text-midnight_text sm:text-2xl">Cài đặt</h2>
         <p className="text-sm text-slate-500 mt-1">
@@ -154,19 +154,19 @@ export default function DashboardSettings() {
         </p>
       </div>
 
-      <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
+      <div className="flex gap-1.5 border-b border-slate-200 pb-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+            className={`flex flex-1 min-w-0 flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl px-1 py-2 sm:px-4 sm:py-3 text-[10px] sm:text-sm font-semibold transition-all ${
               activeTab === t.id
                 ? 'bg-primary text-white shadow-md'
                 : 'bg-white text-slate-600 shadow-sm'
             }`}>
-            <Icon icon={t.icon} className="text-lg" />
-            <span className="whitespace-nowrap">{t.label}</span>
+            <Icon icon={t.icon} className="text-base sm:text-lg shrink-0" />
+            <span className="truncate w-full text-center">{t.label}</span>
           </button>
         ))}
       </div>

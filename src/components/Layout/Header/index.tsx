@@ -10,8 +10,11 @@ import SignUp from '@/components/Auth/SignUp'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import { headerItem } from '@/types/menu'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from '@/app/Providers'
+
 const Header: React.FC = () => {
   const { data: session } = useSession()
+  const { worldcupEnabled } = useTheme()
   const [headerData, setHeaderData] = useState<headerItem[]>([])
 
   const [navbarOpen, setNavbarOpen] = useState(false)
@@ -117,13 +120,13 @@ const Header: React.FC = () => {
   return (
     <>
     <header
-      className={`fixed top-0 w-full transition-all duration-300 ${
-        navbarOpen ? 'z-[61]' : 'z-40'
+      className={`site-header w-full transition-all duration-300 ${
+        navbarOpen ? 'max-lg:hidden' : ''
       } ${
         sticky
           ? 'bg-white/95 py-3 shadow-[0_8px_30px_-12px_rgba(0,27,80,0.15)] backdrop-blur-md'
           : 'bg-header/80 py-3 backdrop-blur-sm'
-      }`}>
+      } ${worldcupEnabled ? 'site-header--wc' : ''}`}>
       <div>
         <div className='container flex items-center justify-between'>
           <div>
@@ -160,7 +163,7 @@ const Header: React.FC = () => {
                 <button
                   type="button"
                   className='hidden lg:block bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 px-6 py-2.5 rounded-full font-semibold text-base shadow-lg shadow-primary/30 transition-all'
-                  onClick={openSignUpModal}>
+                  onClick={() => openSignUpModal()}>
                   Đăng Ký DN
                 </button>
               </>
@@ -183,24 +186,41 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+      {worldcupEnabled && (
+        <div className="wc-navbar-tricolor flex h-[3px] w-full" aria-hidden>
+          <div className="flex-1 bg-[#C8102E]" />
+          <div className="flex-1 bg-[#006847]" />
+          <div className="flex-1 bg-[#0057A8]" />
+        </div>
+      )}
     </header>
 
-    {/* Mobile menu: overlay mờ + panel nền trắng (ngoài header để z-index đúng) */}
-    {navbarOpen && (
-      <div
-        className="fixed inset-0 z-[60] lg:hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Menu điều hướng">
-        <button
-          type="button"
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-          aria-label="Đóng menu"
-          onClick={() => setNavbarOpen(false)}
-        />
-        <aside
-          ref={mobileMenuRef}
-          className="absolute inset-y-0 right-0 flex w-[min(100%,20rem)] flex-col border-l border-slate-200 bg-white shadow-2xl">
+    {/* Mobile menu */}
+    <div
+      className={`fixed left-0 right-0 bottom-0 z-[60] lg:hidden transition-all duration-300 ${
+        worldcupEnabled ? 'site-mobile-menu-offset' : 'top-0'
+      } ${
+        navbarOpen ? 'pointer-events-auto' : 'pointer-events-none'
+      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu điều hướng">
+      <button
+        type="button"
+        className={`absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300 ${
+          navbarOpen ? 'opacity-100' : 'opacity-0'
+        }`}
+        aria-label="Đóng menu"
+        onClick={() => setNavbarOpen(false)}
+        tabIndex={navbarOpen ? 0 : -1}
+      />
+      <aside
+        ref={mobileMenuRef}
+        className={`absolute inset-y-0 flex w-[min(100%,20rem)] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
+          session
+            ? `left-0 border-r border-slate-200 ${navbarOpen ? 'translate-x-0' : '-translate-x-full'}`
+            : `right-0 border-l border-slate-200 ${navbarOpen ? 'translate-x-0' : 'translate-x-full'}`
+        }`}>
           <div className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-4">
             <Logo />
             <button
@@ -246,7 +266,7 @@ const Header: React.FC = () => {
                   <button
                     type="button"
                     className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 px-4 py-3 font-semibold text-white shadow-md"
-                    onClick={openSignUpModal}>
+                    onClick={() => openSignUpModal()}>
                     Đăng Ký DN
                   </button>
                 </>
@@ -254,8 +274,7 @@ const Header: React.FC = () => {
             </div>
           </nav>
         </aside>
-      </div>
-    )}
+    </div>
 
     {isSignInOpen && (
       <div

@@ -2,6 +2,7 @@
 
 import { Icon } from '@iconify/react/dist/iconify.js'
 import Link from 'next/link'
+import WorldCupSectionDecor, { WorldCupSectionLabel, WorldCupIconAccent } from '@/components/WorldCupSectionDecor'
 
 const ValuationProcess = () => {
   const steps = [
@@ -27,16 +28,17 @@ const ValuationProcess = () => {
       number: '04',
       title: 'Đưa Ra Quyết Định',
       description: 'Sử dụng dữ liệu chính xác để mua, bán hoặc định giá xe tự tin',
-      icon: 'tabler:hand-thumbs-up',
+      icon: 'tabler:thumb-up',
     },
   ]
 
   return (
-    <section id="how-it-works" className="scroll-mt-24 bg-gradient-to-b from-white via-slate-50/50 to-white py-20 lg:py-28">
-      <div className="container px-4">
+    <section id="how-it-works" className="relative scroll-mt-24 overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white py-20 lg:py-28">
+      <WorldCupSectionDecor variant="process" led />
+      <div className="container relative z-10 px-4">
         <div className="mx-auto mb-16 max-w-2xl text-center">
           <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            Quy trình
+            <WorldCupSectionLabel index={0}>Quy trình</WorldCupSectionLabel>
           </span>
           <h2 className="mt-2 text-3xl font-black text-midnight_text sm:text-4xl lg:text-5xl">
             4 bước đến con số bạn tin được
@@ -56,7 +58,7 @@ const ValuationProcess = () => {
               )}
 
               {/* Card */}
-              <div className="relative z-10 h-full rounded-2xl bg-white p-8 shadow-md transition-all duration-300 hover:shadow-xl">
+              <div className="wc-step-card relative z-10 h-full rounded-2xl bg-white p-8 shadow-md transition-all duration-300 hover:shadow-xl">
                 {/* Step Number */}
                 <div className='text-primary text-5xl font-bold opacity-20 mb-4'>
                   {step.number}
@@ -64,12 +66,14 @@ const ValuationProcess = () => {
 
                 {/* Icon Circle */}
                 <div className='mb-6'>
-                  <div className='w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center'>
-                    <Icon
-                      icon={step.icon}
-                      className='text-3xl text-primary'
-                    />
-                  </div>
+                  <WorldCupIconAccent index={index}>
+                    <div className='flex h-16 w-16 items-center justify-center rounded-full bg-primary/10'>
+                      <Icon
+                        icon={step.icon}
+                        className='text-3xl text-primary'
+                      />
+                    </div>
+                  </WorldCupIconAccent>
                 </div>
 
                 {/* Content */}

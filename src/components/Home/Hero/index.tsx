@@ -11,7 +11,7 @@ const stats = [
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-header pt-24 pb-14 lg:pt-28 lg:pb-16">
+    <section className="relative overflow-hidden bg-header pt-10 pb-14 lg:pt-14 lg:pb-16">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(59,130,246,0.14),transparent_70%)]"
         aria-hidden

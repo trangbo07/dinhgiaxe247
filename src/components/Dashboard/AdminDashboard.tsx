@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import { useTheme } from '@/app/Providers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,6 +176,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const { worldcupEnabled, toggleWorldcup } = useTheme()
+  const [themeLoading, setThemeLoading] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -273,6 +276,110 @@ export default function AdminDashboard() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* ── Giao diện Website ────────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+            <Icon icon="tabler:palette" className="text-xl text-blue-700" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">Giao diện Website</p>
+            <p className="text-xs text-slate-500">Bật/tắt theme theo sự kiện — áp dụng toàn bộ website ngay lập tức</p>
+          </div>
+        </div>
+
+        {/* World Cup Theme Row */}
+        <div
+          className="flex items-center justify-between rounded-xl border p-4 transition-all duration-300"
+          style={worldcupEnabled ? {
+            borderColor: 'rgba(0,61,165,0.25)',
+            background: 'linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%)',
+          } : {
+            borderColor: '#f1f5f9',
+            background: '#f8fafc',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            {/* WC 2026 identity: dark navy + tricolor */}
+            <div
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-2xl shadow-sm"
+              style={worldcupEnabled ? { background: '#001B5E' } : { background: '#f1f5f9' }}
+            >
+              ⚽
+              {worldcupEnabled && (
+                <div className="absolute bottom-0 left-0 right-0 flex h-1">
+                  <div className="flex-1" style={{ background: '#C8102E' }} />
+                  <div className="flex-1" style={{ background: '#006847' }} />
+                  <div className="flex-1" style={{ background: '#0057A8' }} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="font-bold text-slate-800">
+                FIFA World Cup 2026
+                {worldcupEnabled && (
+                  <span
+                    className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-black text-white"
+                    style={{ background: '#003DA5' }}
+                  >
+                    ĐANG BẬT
+                  </span>
+                )}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Dark Blue chủ đạo · Tricolor 🇨🇦🇲🇽🇺🇸 · Section & Banner WC 2026
+              </p>
+              {worldcupEnabled && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {[
+                    { c: '#003DA5', label: 'FIFA Navy' },
+                    { c: '#C8102E', label: 'Canada' },
+                    { c: '#006847', label: 'Mexico' },
+                    { c: '#0057A8', label: 'USA' },
+                  ].map(({ c, label }) => (
+                    <span key={c} className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
+                      <span className="inline-block h-3 w-3 rounded-sm ring-1 ring-black/10" style={{ backgroundColor: c }} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Toggle switch */}
+          <button
+            type="button"
+            disabled={themeLoading}
+            onClick={async () => {
+              setThemeLoading(true)
+              await toggleWorldcup(!worldcupEnabled)
+              setThemeLoading(false)
+            }}
+            className={`relative flex h-8 w-14 shrink-0 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${themeLoading ? 'opacity-60' : ''}`}
+            style={{ background: worldcupEnabled ? '#003DA5' : '#cbd5e1' }}
+            aria-label={worldcupEnabled ? 'Tắt theme World Cup' : 'Bật theme World Cup'}
+          >
+            <span
+              className={`ml-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 ${
+                worldcupEnabled ? 'translate-x-6' : 'translate-x-0'
+              }`}
+            >
+              {themeLoading ? (
+                <Icon icon="tabler:loader" className="animate-spin text-xs text-slate-400" />
+              ) : worldcupEnabled ? (
+                <Icon icon="tabler:check" className="text-xs" style={{ color: '#003DA5' }} />
+              ) : null}
+            </span>
+          </button>
+        </div>
+
+        <p className="mt-3 text-[11px] text-slate-400">
+          Khi tắt, website tự động về giao diện mặc định. Áp dụng ngay lập tức — không cần deploy lại.
+        </p>
       </div>
 
       {error && (

@@ -1,6 +1,7 @@
 'use client'
 
 import { Icon } from '@iconify/react/dist/iconify.js'
+import WorldCupSectionDecor from '@/components/WorldCupSectionDecor'
 
 const perks = [
   'Định giá cao (có giới hạn chống spam)',
@@ -11,8 +12,9 @@ const perks = [
 
 export default function LandingBusinessCta() {
   return (
-    <section className="py-16 lg:py-20">
-      <div className="container">
+    <section className="relative overflow-hidden py-16 lg:py-20">
+      <WorldCupSectionDecor variant="business" strip={false} />
+      <div className="container relative z-10">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-100 via-blue-50 to-white border border-blue-200 p-8 text-midnight_text shadow-xl lg:p-12">
           <div
             className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl"

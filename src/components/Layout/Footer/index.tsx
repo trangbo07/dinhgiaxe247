@@ -28,7 +28,7 @@ const Footer = () => {
   }, [])
 
   return (
-    <div className='bg-midnight_text'>
+    <div className='site-footer bg-midnight_text'>
       <div className='container p-4'>
         <div className='my-6 grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-y-8 gap-x-6'>
           <div className='sm:col-span-6 lg:col-span-3'>

@@ -12,6 +12,7 @@ import {
   getDashboardPageTitle,
   isDashboardNavActive,
 } from '@/lib/dashboard-nav'
+import { useWallet } from '@/app/Providers'
 
 // ─── NavLink renders one item with correct active color ──────────────────────
 
@@ -51,11 +52,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const router = useRouter()
   const pathname = usePathname() ?? ''
   const [menuOpen, setMenuOpen] = useState(false)
+  const { isUltra, ultraUntil } = useWallet()
 
   const isAdmin = session?.user?.role === 'admin'
   const isOnAdminPage = pathname.startsWith('/dashboard/admin')
+  const accountType = session?.user?.accountType ?? 'business'
+  const isPersonal = accountType === 'personal'
 
-  const businessNav = DASHBOARD_NAV.filter((n) => !n.adminOnly)
+  const businessNav = DASHBOARD_NAV.filter((n) => {
+    if (n.adminOnly) return false
+    if (n.businessOnly && isPersonal) return false
+    return true
+  })
   const adminNav = DASHBOARD_NAV.filter((n) => n.adminOnly)
   const mobileTabs = businessNav.filter((n) => n.mobileTab)
 
@@ -116,7 +124,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <div className="flex min-h-screen min-h-[100dvh] bg-slate-50">
 
       {/* ── Desktop sidebar ─────────────────────────────────────────────────── */}
-      <aside className="fixed inset-y-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
+      <aside className="dashboard-sidebar fixed inset-y-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-100 p-5">
           <Logo href="/dashboard" />
         </div>
@@ -156,7 +164,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
         {/* Top bar */}
         <header
-          className={`sticky top-0 z-20 flex items-center gap-3 border-b px-3 py-3 backdrop-blur-md sm:px-4 lg:px-8 lg:py-4 ${
+          className={`dashboard-topbar sticky top-0 z-20 flex items-center gap-3 border-b px-3 py-3 backdrop-blur-md sm:px-4 lg:px-8 lg:py-4 ${
             isOnAdminPage && isAdmin
               ? 'border-blue-200 bg-blue-50/95'
               : 'border-slate-200 bg-white/95'
@@ -178,8 +186,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   ADMIN
                 </span>
               )}
+              {isUltra && !isAdmin && (
+                <span className="shrink-0 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-1.5 py-0.5 text-[8px] font-black text-white">
+                  ULTRA
+                </span>
+              )}
             </div>
-            <p className="truncate text-xs text-slate-500">{session.user?.name ?? 'Doanh nghiệp'}</p>
+            <p className="truncate text-xs text-slate-500">{session.user?.name ?? (isPersonal ? 'Cá nhân' : 'Doanh nghiệp')}</p>
           </div>
 
           {/* Desktop title */}
@@ -194,8 +207,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </div>
             ) : (
               <div>
-                <h1 className="text-xl font-bold text-midnight_text">Bảng điều khiển Doanh nghiệp</h1>
-                <p className="text-xs text-slate-500">Định giá · Chat AI · Lead khách · Lưu cloud</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-midnight_text">
+                    {isPersonal ? 'Bảng điều khiển Cá nhân' : 'Bảng điều khiển Doanh nghiệp'}
+                  </h1>
+                  {isUltra && (
+                    <span className="rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-2 py-0.5 text-[9px] font-black text-white">
+                      ULTRA
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500">
+                  {isPersonal ? 'Định giá · Chat AI · Lịch sử' : 'Định giá · Chat AI · Lead khách · Lưu cloud'}
+                </p>
               </div>
             )}
           </div>
@@ -229,7 +253,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
         {/* Mobile bottom tabs (business only) */}
         <nav
-          className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md lg:hidden"
+          className="hidden"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
           aria-label="Điều hướng chính">
           <div className={`grid grid-cols-${mobileTabs.length}`}>
@@ -253,7 +277,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       {/* ── Mobile drawer ───────────────────────────────────────────────────── */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+        <div className="dashboard-mobile-drawer fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
           <button
             type="button"
             className="absolute inset-0 bg-black/40"
