@@ -193,34 +193,68 @@ async function fetchBonbanhPrices(query: string): Promise<number[]> {
  * Fetch market insights from all sources (Chợ Tốt + Bonbanh).
  * Results are cached for CACHE_TTL_MS.
  * Falls back to stale cache on complete failure.
+ *
+ * Search strategy (most → least specific):
+ *   1. brand + model + year + version  (e.g. "Toyota Camry 2020 2.5Q")
+ *   2. brand + model + year            (e.g. "Toyota Camry 2020")
+ *   3. brand + model                   (e.g. "Toyota Camry")
+ * Each level is tried only when the previous level has < MIN_SAMPLES results.
  */
+const MIN_SAMPLES = 8
+
 export async function fetchMarketInsights(
   brand: string,
   model: string,
-  year: string | number
+  year: string | number,
+  version?: string
 ): Promise<MarketInsight[]> {
-  const qFull = [norm(brand), norm(model), norm(year)].filter(Boolean).join(' ')
-  const qBase = [norm(brand), norm(model)].filter(Boolean).join(' ')
+  const qVersion = [norm(brand), norm(model), norm(year), norm(version)].filter(Boolean).join(' ')
+  const qYear    = [norm(brand), norm(model), norm(year)].filter(Boolean).join(' ')
+  const qBase    = [norm(brand), norm(model)].filter(Boolean).join(' ')
   if (!qBase) return []
 
+  // Cache key is the most specific query we will actually use
+  const cacheKey = version ? qVersion : qYear
   const now = Date.now()
-  const cached = _cache.get(qFull)
+  const cached = _cache.get(cacheKey)
   if (cached && now - cached.at < CACHE_TTL_MS) return cached.insights
 
-  // Fetch all sources in parallel
-  const [ctFull, bbFull] = await Promise.all([
-    fetchChoTotPrices(qFull),
-    fetchBonbanhPrices(qFull),
-  ])
+  // Level 1: version-specific query (only when version is known)
+  let ctPrices: number[] = []
+  let bbPrices: number[] = []
 
-  // Broaden search if specific query returned too few results
-  const needsBroader = ctFull.length + bbFull.length < 8
-  const [ctBase, bbBase] = needsBroader && qFull !== qBase
-    ? await Promise.all([fetchChoTotPrices(qBase), fetchBonbanhPrices(qBase)])
-    : [[], []]
+  if (version && qVersion !== qYear) {
+    const [ctV, bbV] = await Promise.all([
+      fetchChoTotPrices(qVersion),
+      fetchBonbanhPrices(qVersion),
+    ])
+    ctPrices = ctV
+    bbPrices = bbV
+  }
 
-  const ctPrices = [...new Set([...ctFull, ...ctBase])].slice(0, 200)
-  const bbPrices = [...new Set([...bbFull, ...bbBase])].slice(0, 200)
+  // Level 2: year-specific query (broaden when version gave too few results)
+  if (ctPrices.length + bbPrices.length < MIN_SAMPLES && qYear !== qVersion) {
+    const [ctY, bbY] = await Promise.all([
+      fetchChoTotPrices(qYear),
+      fetchBonbanhPrices(qYear),
+    ])
+    // Merge but deduplicate; prefer version-specific hits if any
+    ctPrices = [...new Set([...ctPrices, ...ctY])]
+    bbPrices = [...new Set([...bbPrices, ...bbY])]
+  }
+
+  // Level 3: model-only query (last resort)
+  if (ctPrices.length + bbPrices.length < MIN_SAMPLES) {
+    const [ctB, bbB] = await Promise.all([
+      fetchChoTotPrices(qBase),
+      fetchBonbanhPrices(qBase),
+    ])
+    ctPrices = [...new Set([...ctPrices, ...ctB])].slice(0, 200)
+    bbPrices = [...new Set([...bbPrices, ...bbB])].slice(0, 200)
+  } else {
+    ctPrices = ctPrices.slice(0, 200)
+    bbPrices = bbPrices.slice(0, 200)
+  }
 
   const insights: MarketInsight[] = []
   const ctInsight = buildInsight('Chợ Tốt', ctPrices)
@@ -229,7 +263,7 @@ export async function fetchMarketInsights(
   if (bbInsight.sampleCount > 0) insights.push(bbInsight)
 
   if (insights.length > 0) {
-    _cache.set(qFull, { at: now, insights })
+    _cache.set(cacheKey, { at: now, insights })
   } else if (cached) {
     return cached.insights
   }

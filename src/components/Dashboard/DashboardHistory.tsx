@@ -35,6 +35,22 @@ export default function DashboardHistory() {
   const exportPdf = async (v: ValuationRow) => {
     setPdfId(v.id)
     try {
+      // Tính scores từ thông số xe
+      const now = new Date().getFullYear()
+      const age = v.year ? Math.max(0, now - v.year) : 5
+      const km = v.mileage ?? 60000
+      const kmRisk = Math.min(100, Math.round((km / 150000) * 100))
+      const ageRisk = Math.min(100, Math.round((age / 15) * 100))
+      const riskScore = Math.round(kmRisk * 0.45 + ageRisk * 0.55)
+      const confidenceScore = Math.max(55, 95 - Math.round(riskScore * 0.35))
+      const liquidityScore = Math.max(40, 92 - Math.round((riskScore + kmRisk) * 0.3))
+
+      const mid = v.price ?? (v.price_low != null && v.price_high != null ? Math.round((v.price_low + v.price_high) / 2) : null)
+      const negotiateFast = mid != null ? Math.round(mid * 0.97) : null
+      const negotiateTarget = mid != null ? Math.round(mid * 0.99) : null
+      const negotiateHold = v.price_high ?? mid
+      const negotiateAnchor = v.price_high != null ? Math.round(v.price_high * 1.015) : mid != null ? Math.round(mid * 1.015) : null
+
       await downloadValuationDetailPdf({
         businessName,
         brand: v.brand,
@@ -49,6 +65,13 @@ export default function DashboardHistory() {
         explanation: v.explanation,
         createdAt: v.created_at,
         source: v.source,
+        riskScore,
+        confidenceScore,
+        liquidityScore,
+        negotiateFast,
+        negotiateTarget,
+        negotiateHold,
+        negotiateAnchor,
       })
       toast.success('Đã tải PDF định giá')
     } catch {

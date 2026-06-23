@@ -155,6 +155,7 @@ export default function GuestValuationForm() {
           brand: getBrandName(),
           model: getModelName(),
           year: parseInt(selectedYear, 10),
+          version: selectedVersion || undefined,
           color: selectedColor,
           mileage: parseInt(String(mileage).replace(/\D/g, ''), 10) || 0,
           intent,

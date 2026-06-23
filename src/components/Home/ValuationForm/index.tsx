@@ -408,6 +408,7 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
           brand: brandName,
           model: modelName,
           year,
+          version: version || undefined,
           color,
           mileage: mileageKm,
         }),

@@ -19,11 +19,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { brand, model, year, color, mileage, intent } = body
+    const { brand, model, year, version, color, mileage, intent } = body
     const result = await runValuation({
       brand: String(brand ?? ''),
       model: String(model ?? ''),
       year: Number(year),
+      version: version ? String(version) : undefined,
       color: String(color ?? ''),
       mileage: Number(mileage),
       intent,
