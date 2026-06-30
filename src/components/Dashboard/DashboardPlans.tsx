@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import { useWallet } from '@/app/Providers'
@@ -150,6 +151,55 @@ export default function DashboardPlans() {
           </p>
         </div>
       )}
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Icon icon="tabler:qrcode" className="text-xl text-primary" />
+            </div>
+            <div>
+              <p className="text-base font-black text-midnight_text">Gia hạn gói qua chuyển khoản</p>
+              <p className="text-xs text-slate-500">Quét mã QR bên dưới để thanh toán nhanh</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center p-6">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+            <Image
+              src="/paymentQr/qr.jpg"
+              alt="Mã QR thanh toán gia hạn gói"
+              width={320}
+              height={420}
+              className="h-auto w-full max-w-[300px] rounded-xl"
+            />
+          </div>
+
+          <div className="mt-5 w-full max-w-sm space-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Ngân hàng</span>
+              <span className="font-bold text-slate-700">TPBank</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Chủ tài khoản</span>
+              <span className="font-bold text-slate-700">TRAN THI THU TRANG</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Số tài khoản</span>
+              <span className="font-bold text-slate-700">85707112005</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-blue-50 px-4 py-3 text-left">
+            <Icon icon="tabler:info-circle" className="mt-0.5 shrink-0 text-blue-500" />
+            <p className="text-xs text-slate-600">
+              Vui lòng ghi rõ nội dung chuyển khoản là <span className="font-bold text-slate-700">email tài khoản</span> của bạn.
+              Gói sẽ được kích hoạt sau khi chúng tôi xác nhận thanh toán. Hỗ trợ VietQR NAPAS 247.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
