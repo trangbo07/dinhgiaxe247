@@ -6,7 +6,6 @@ import toast from 'react-hot-toast'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import Logo from '@/components/Layout/Header/Logo'
 import Loader from '@/components/Common/Loader'
-import { PERSONAL_PLAN } from '@/lib/plan-limits'
 
 const eyeButtonClass =
   'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors'
@@ -20,7 +19,6 @@ const inputClass =
   'w-full rounded-xl border border-gray-200 bg-gray-50 focus:bg-white px-5 py-3.5 text-base text-dark outline-none transition-all placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10 text-gray-800'
 
 const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
-  const [accountType, setAccountType] = useState<'personal' | 'business'>('personal')
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -31,8 +29,6 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const isPersonal = accountType === 'personal'
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -42,12 +38,12 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
     const confirmPassword = form.confirmPassword
 
     if (!name || !email || !password || !confirmPassword) {
-      toast.error(isPersonal ? 'Vui lòng nhập họ tên, email và mật khẩu' : 'Vui lòng nhập tên doanh nghiệp, email và mật khẩu')
+      toast.error('Vui lòng nhập tên doanh nghiệp, email và mật khẩu')
       return
     }
 
     if (name.length < 2) {
-      toast.error(isPersonal ? 'Họ tên không hợp lệ' : 'Tên doanh nghiệp không hợp lệ')
+      toast.error('Tên doanh nghiệp không hợp lệ')
       return
     }
 
@@ -71,7 +67,7 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, accountType }),
+        body: JSON.stringify({ name, email, password }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Đăng ký thất bại')
@@ -100,43 +96,20 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
       </div>
 
       <h3 className='text-xl font-bold text-midnight_text mb-1'>
-        {isPersonal ? 'Đăng Ký Cá Nhân' : 'Đăng Ký Doanh Nghiệp'}
+        Đăng Ký Doanh Nghiệp
       </h3>
       <p className='text-sm text-gray-500 mb-4'>
-        {isPersonal
-          ? `${PERSONAL_PLAN.name} — ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá/tháng, miễn phí.`
-          : 'Dashboard quản lý lead, định giá không giới hạn khi nâng cấp.'}
+        4 lượt định giá miễn phí/tháng — nâng cấp gói Doanh nghiệp để dùng không giới hạn.
       </p>
-
-      <div className='mb-5 flex gap-1 rounded-full bg-gray-100 p-1'>
-        <button
-          type='button'
-          onClick={() => setAccountType('personal')}
-          className={`flex-1 rounded-full py-2 text-sm font-bold transition-all ${
-            isPersonal ? 'bg-white text-primary shadow' : 'text-gray-500'
-          }`}
-        >
-          Cá nhân
-        </button>
-        <button
-          type='button'
-          onClick={() => setAccountType('business')}
-          className={`flex-1 rounded-full py-2 text-sm font-bold transition-all ${
-            !isPersonal ? 'bg-white text-primary shadow' : 'text-gray-500'
-          }`}
-        >
-          Doanh nghiệp
-        </button>
-      </div>
 
       <form onSubmit={handleSubmit} className='text-left'>
         <div className='mb-4'>
           <label className='block text-sm font-semibold text-midnight_text mb-1.5'>
-            {isPersonal ? 'Họ và tên' : 'Tên doanh nghiệp'} <span className='text-red-500'>*</span>
+            Tên doanh nghiệp <span className='text-red-500'>*</span>
           </label>
           <input
             type='text'
-            placeholder={isPersonal ? 'VD: Nguyễn Văn A' : 'VD: Showroom Ô tô ABC'}
+            placeholder='VD: Showroom Ô tô ABC'
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -150,7 +123,7 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
           </label>
           <input
             type='email'
-            placeholder={isPersonal ? 'email@gmail.com' : 'email@congty.com'}
+            placeholder='email@congty.com'
             autoComplete='email'
             required
             value={form.email}
@@ -215,25 +188,12 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
           </div>
         </div>
 
-        <div className={`mb-5 rounded-xl px-4 py-3 text-xs font-medium border ${
-          isPersonal ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-blue-50 border-blue-100 text-blue-700'
-        }`}>
+        <div className='mb-5 rounded-xl px-4 py-3 text-xs font-medium border bg-blue-50 border-blue-100 text-blue-700'>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {isPersonal ? (
-              <>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />{PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá/tháng</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Checklist & so sánh xe</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Lịch sử định giá</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />{PERSONAL_PLAN.maxChatPerValuation} chat AI/lần</span>
-              </>
-            ) : (
-              <>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Không giới hạn khi nâng cấp</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Dashboard quản lý</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Quản lý lead khách</span>
-                <span className="flex items-center gap-1"><Icon icon="tabler:check" />Chat AI không giới hạn</span>
-              </>
-            )}
+            <span className="flex items-center gap-1"><Icon icon="tabler:check" />4 lượt định giá miễn phí/tháng</span>
+            <span className="flex items-center gap-1"><Icon icon="tabler:check" />Dashboard quản lý</span>
+            <span className="flex items-center gap-1"><Icon icon="tabler:check" />Quản lý lead khách</span>
+            <span className="flex items-center gap-1"><Icon icon="tabler:check" />Không giới hạn khi nâng cấp gói</span>
           </div>
         </div>
 
@@ -243,8 +203,6 @@ const SignUp = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
           className='w-full py-3.5 rounded-xl text-base font-bold transition-all duration-300 text-white bg-gradient-to-r from-primary to-blue-600 shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[1.02] flex justify-center items-center gap-2 disabled:opacity-70 disabled:hover:scale-100 mb-4'>
           {loading
             ? <><Loader /> Đang tạo tài khoản...</>
-            : isPersonal
-            ? <><Icon icon="tabler:user" className="text-lg" />Tạo tài khoản Cá nhân</>
             : <><Icon icon="tabler:building-store" className="text-lg" />Tạo tài khoản Doanh nghiệp</>}
         </button>
       </form>

@@ -6,15 +6,33 @@ import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
 import type { BusinessProfile } from '@/lib/business-profile'
 import { isValidVNPhone } from '@/utils/validatePhone'
+import { BUSINESS_PLAN_INFO, type PlanCode } from '@/lib/payment-bills'
 
-type TabId = 'profile' | 'account' | 'notifications' | 'preferences'
+type TabId = 'profile' | 'account' | 'bills' | 'notifications' | 'preferences'
 
 const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: 'profile', label: 'Hồ sơ DN', icon: 'tabler:building-store' },
   { id: 'account', label: 'Tài khoản', icon: 'tabler:key' },
+  { id: 'bills', label: 'Bill chuyển khoản', icon: 'tabler:receipt' },
   { id: 'notifications', label: 'Thông báo', icon: 'tabler:bell' },
   { id: 'preferences', label: 'Tùy chọn', icon: 'tabler:adjustments' },
 ]
+
+type Bill = {
+  id: string
+  plan_code: PlanCode
+  amount: number
+  status: 'pending' | 'approved' | 'rejected'
+  admin_note: string | null
+  created_at: string
+  imageUrl: string | null
+}
+
+const BILL_STATUS_LABEL: Record<Bill['status'], { label: string; color: string }> = {
+  pending: { label: 'Chờ duyệt', color: 'text-amber-700 bg-amber-50' },
+  approved: { label: 'Đã duyệt', color: 'text-green-700 bg-green-50' },
+  rejected: { label: 'Từ chối', color: 'text-red-700 bg-red-50' },
+}
 
 const inputClass =
   'w-full min-w-0 bg-gray-50 border border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-gray-700 font-medium transition-all outline-none'
@@ -47,6 +65,9 @@ export default function DashboardSettings() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
 
+  const [bills, setBills] = useState<Bill[]>([])
+  const [billsLoading, setBillsLoading] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -64,6 +85,16 @@ export default function DashboardSettings() {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    if (activeTab !== 'bills') return
+    setBillsLoading(true)
+    fetch('/api/payments/bills')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setBills(data?.bills ?? []))
+      .catch(() => {})
+      .finally(() => setBillsLoading(false))
+  }, [activeTab])
 
   const saveProfile = async (patch: Partial<BusinessProfile> & Record<string, unknown>) => {
     setSaving(true)
@@ -347,6 +378,49 @@ export default function DashboardSettings() {
               Cập nhật mật khẩu
             </button>
           </form>
+        </div>
+      )}
+
+      {activeTab === 'bills' && (
+        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
+          <h3 className="font-bold text-midnight_text mb-4 flex items-center gap-2">
+            <Icon icon="tabler:receipt" className="text-primary text-xl" />
+            Lịch sử chuyển khoản
+          </h3>
+          {billsLoading ? (
+            <p className="text-sm text-slate-400">Đang tải...</p>
+          ) : bills.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              Chưa có bill nào. Vào mục{' '}
+              <a href="/dashboard/plans" className="font-bold text-primary hover:underline">Gói của tôi</a>{' '}
+              để mua gói và gửi bill chuyển khoản.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {bills.map((bill) => (
+                <li key={bill.id} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3">
+                  {bill.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={bill.imageUrl} alt="Bill" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-slate-700">
+                      {BUSINESS_PLAN_INFO[bill.plan_code].label} · {bill.amount.toLocaleString('vi-VN')}đ
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {new Date(bill.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </p>
+                    {bill.status === 'rejected' && bill.admin_note && (
+                      <p className="mt-1 text-xs text-red-500">Lý do: {bill.admin_note}</p>
+                    )}
+                  </div>
+                  <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${BILL_STATUS_LABEL[bill.status].color}`}>
+                    {BILL_STATUS_LABEL[bill.status].label}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

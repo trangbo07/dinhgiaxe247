@@ -1,13 +1,9 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
-import React, { createContext, useContext, useState, useLayoutEffect, useEffect, useMemo } from "react";
-import toast from "react-hot-toast";
+import { SessionProvider, useSession } from "next-auth/react";
+import React, { createContext, useContext, useState, useLayoutEffect, useEffect, useCallback } from "react";
 import WorldCupBootLoader from "@/components/WorldCupBootLoader";
-import {
-  type AccountType,
-  getPlanLimits,
-} from "@/lib/plan-limits";
+import { FREE_VALUATIONS_PER_MONTH, getPlanLimits } from "@/lib/plan-limits";
 
 // ─── Theme Context ────────────────────────────────────────────────────────────
 
@@ -26,23 +22,24 @@ export const useTheme = () => {
 }
 
 // ─── Wallet Context ───────────────────────────────────────────────────────────
+// Nguồn sự thật cho gói/quota nằm ở server (bảng subscriptions/valuation_usage,
+// xem src/lib/plan-quota.ts). Context này chỉ là cache phía client, hydrate từ
+// GET /api/plans/me, dùng cho UI hiển thị tức thời — API vẫn tự kiểm tra lại.
 
 type WalletContextType = {
-  balance: number;
   isPro: boolean;
-  isUltra: boolean;
-  ultraUntil: number | null;
-  accountType: AccountType | null;
+  /** true khi đã có kết quả (thật hoặc rỗng) từ GET /api/plans/me — tránh nhấp nháy UI trước khi biết isPro. */
+  planStateLoaded: boolean;
+  planCode: 'monthly' | 'quarterly' | 'yearly' | null;
+  planExpiresAt: string | null;
   planName: string;
   maxValuationsPerMonth: number;
   remainingFreeValuations: number;
   maxChatPerValuation: number;
   canUseValuation: () => boolean;
-  syncFreeUsageForUser: (userKey?: string | null, accountType?: AccountType | null) => void;
-  consumeValuationUse: (userKey?: string | null) => void;
-  buyPro: (price: number) => boolean;
-  activateUltraTrial: () => void;
-  deductBalance: (amount: number) => boolean;
+  refreshPlanState: () => Promise<void>;
+  /** Trừ lạc quan 1 lượt ngay sau khi gọi API định giá thành công, tránh phải refetch. */
+  consumeLocalValuation: () => void;
 };
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -54,6 +51,79 @@ export const useWallet = () => {
   }
   return context;
 };
+
+function WalletProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession();
+  const [isPro, setIsPro] = useState(false);
+  const [planStateLoaded, setPlanStateLoaded] = useState(false);
+  const [planCode, setPlanCode] = useState<'monthly' | 'quarterly' | 'yearly' | null>(null);
+  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
+  const [remainingFreeValuations, setRemainingFreeValuations] = useState(FREE_VALUATIONS_PER_MONTH);
+
+  const planLimits = getPlanLimits({ isPro });
+
+  const refreshPlanState = useCallback(async () => {
+    if (status !== 'authenticated') return;
+    try {
+      const res = await fetch('/api/plans/me');
+      if (!res.ok) return;
+      const data = await res.json();
+      setIsPro(Boolean(data.hasActivePlan));
+      setPlanCode(data.planCode ?? null);
+      setPlanExpiresAt(data.expiresAt ?? null);
+      if (Number.isFinite(data.monthlyRemaining)) {
+        setRemainingFreeValuations(data.monthlyRemaining);
+      } else {
+        setRemainingFreeValuations(FREE_VALUATIONS_PER_MONTH);
+      }
+    } catch {
+    } finally {
+      setPlanStateLoaded(true);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      refreshPlanState();
+    } else if (status === 'unauthenticated') {
+      setIsPro(false);
+      setPlanCode(null);
+      setPlanExpiresAt(null);
+      setRemainingFreeValuations(FREE_VALUATIONS_PER_MONTH);
+      setPlanStateLoaded(true);
+    }
+  }, [status, refreshPlanState]);
+
+  const canUseValuation = () => {
+    if (isPro) return true;
+    return remainingFreeValuations > 0;
+  };
+
+  const consumeLocalValuation = () => {
+    if (isPro) return;
+    setRemainingFreeValuations((prev) => Math.max(0, prev - 1));
+  };
+
+  return (
+    <WalletContext.Provider
+      value={{
+        isPro,
+        planStateLoaded,
+        planCode,
+        planExpiresAt,
+        planName: planLimits.planName,
+        maxValuationsPerMonth: planLimits.maxValuationsPerMonth,
+        remainingFreeValuations,
+        maxChatPerValuation: planLimits.maxChatPerValuation,
+        canUseValuation,
+        refreshPlanState,
+        consumeLocalValuation,
+      }}
+    >
+      {children}
+    </WalletContext.Provider>
+  );
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // ── World Cup Theme ────────────────────────────────────────────────────────
@@ -120,178 +190,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }).catch(() => {})
   }
 
-  // ── Wallet ─────────────────────────────────────────────────────────────────
-  const [balance, setBalance] = useState(1800000);
-  const [isPro, setIsPro] = useState(false);
-  const [isUltra, setIsUltra] = useState(false);
-  const [ultraUntil, setUltraUntil] = useState<number | null>(null);
-  const [remainingFreeValuations, setRemainingFreeValuations] = useState(0);
-  const [activeUserKey, setActiveUserKey] = useState<string | null>(null);
-  const [accountType, setAccountType] = useState<AccountType | null>(null);
-
-  const planLimits = useMemo(
-    () => getPlanLimits({ accountType, isPro, isUltra }),
-    [accountType, isPro, isUltra]
-  );
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('valucar_ultra_trial_v1');
-      if (raw) {
-        const parsed = JSON.parse(raw) as { until: number };
-        if (parsed.until > Date.now()) {
-          setIsUltra(true);
-          setUltraUntil(parsed.until);
-        } else {
-          localStorage.removeItem('valucar_ultra_trial_v1');
-        }
-      }
-    } catch {}
-
-    // Dọn legacy gói Cá nhân Pro (đã gộp thành 1 gói)
-    try {
-      localStorage.removeItem('valucar_personal_pro_v1');
-    } catch {}
-  }, []);
-
-  const syncFreeUsageForUser = (userKey?: string | null, nextAccountType?: AccountType | null) => {
-    const key = (userKey ?? '').trim();
-    setActiveUserKey(key || null);
-
-    if (nextAccountType === 'personal' || nextAccountType === 'business') {
-      setAccountType(nextAccountType);
-    }
-
-    if (!key) {
-      setRemainingFreeValuations(0);
-      return;
-    }
-
-    const limits = getPlanLimits({
-      accountType: nextAccountType ?? accountType,
-      isPro,
-      isUltra,
-    });
-
-    if (limits.unlimited) return;
-
-    try {
-      const now = new Date();
-      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-      const maxForUser = limits.maxValuationsPerMonth;
-      const usageStorageKey = `valucar_free_usage_v1_${key}`;
-      const raw = localStorage.getItem(usageStorageKey);
-      const parsed = raw ? JSON.parse(raw) as { month: string; used: number } : null;
-      const usedBase = parsed && parsed.month === currentMonthKey ? Number(parsed.used) || 0 : 0;
-
-      if (!parsed || parsed.month !== currentMonthKey) {
-        localStorage.setItem(usageStorageKey, JSON.stringify({ month: currentMonthKey, used: 0 }));
-        setRemainingFreeValuations(maxForUser);
-        return;
-      }
-
-      const used = Math.max(0, Math.min(maxForUser, usedBase));
-      setRemainingFreeValuations(maxForUser - used);
-    } catch {
-      setRemainingFreeValuations(limits.maxValuationsPerMonth);
-    }
-  };
-
-  useEffect(() => {
-    if (activeUserKey) {
-      syncFreeUsageForUser(activeUserKey, accountType);
-    }
-  }, [isPro, isUltra, accountType, activeUserKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const canUseValuation = () => {
-    if (isPro || isUltra) return true;
-    if (!activeUserKey) return false;
-    return remainingFreeValuations > 0;
-  };
-
-  const consumeValuationUse = (userKey?: string | null) => {
-    if (isPro || isUltra) return;
-    const key = (userKey ?? activeUserKey ?? '').trim();
-    if (!key) return;
-
-    const limits = getPlanLimits({ accountType, isPro, isUltra });
-    if (limits.unlimited) return;
-
-    try {
-      const now = new Date();
-      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-      const maxForUser = limits.maxValuationsPerMonth;
-      const usageStorageKey = `valucar_free_usage_v1_${key}`;
-      const raw = localStorage.getItem(usageStorageKey);
-      const parsed = raw ? JSON.parse(raw) as { month: string; used: number } : null;
-      const usedBase = parsed && parsed.month === currentMonthKey ? Number(parsed.used) || 0 : 0;
-
-      const used = Math.max(0, Math.min(maxForUser, usedBase + 1));
-      localStorage.setItem(usageStorageKey, JSON.stringify({ month: currentMonthKey, used }));
-      setRemainingFreeValuations(maxForUser - used);
-    } catch {
-      setRemainingFreeValuations((prev) => Math.max(0, prev - 1));
-    }
-  };
-
-  const activateUltraTrial = () => {
-    const until = Date.now() + 30 * 24 * 60 * 60 * 1000;
-    try {
-      localStorage.setItem('valucar_ultra_trial_v1', JSON.stringify({ until }));
-    } catch {}
-    setIsUltra(true);
-    setUltraUntil(until);
-    toast.success('Đã kích hoạt Ultra 1 tháng miễn phí! Tận hưởng đầy đủ tính năng.');
-  };
-
-  const buyPro = (price: number) => {
-    if (balance >= price) {
-      setBalance(balance - price);
-      setIsPro(true);
-      toast.success(`Đã kích hoạt gói Doanh nghiệp! Đã trừ ${price.toLocaleString('vi-VN')}đ`);
-      return true;
-    } else {
-      toast.error(`Không đủ số dư! Cần ${price.toLocaleString('vi-VN')}đ, còn ${balance.toLocaleString('vi-VN')}đ`);
-      return false;
-    }
-  };
-
-  const deductBalance = (amount: number) => {
-    if (balance >= amount) {
-      setBalance(b => b - amount);
-      return true;
-    }
-    return false;
-  };
-
   return (
     <SessionProvider>
       <ThemeContext.Provider value={{ worldcupEnabled, themeReady, toggleWorldcup }}>
-        <WalletContext.Provider
-          value={{
-            balance,
-            isPro,
-            isUltra,
-            ultraUntil,
-            accountType,
-            planName: planLimits.planName,
-            maxValuationsPerMonth: planLimits.maxValuationsPerMonth,
-            remainingFreeValuations,
-            maxChatPerValuation: planLimits.maxChatPerValuation,
-            canUseValuation,
-            syncFreeUsageForUser,
-            consumeValuationUse,
-            buyPro,
-            activateUltraTrial,
-            deductBalance,
-          }}
-        >
+        <WalletProvider>
           {!themeReady ? (
             <WorldCupBootLoader />
           ) : (
             <div className="theme-content-enter">{children}</div>
           )}
-        </WalletContext.Provider>
+        </WalletProvider>
       </ThemeContext.Provider>
     </SessionProvider>
   );

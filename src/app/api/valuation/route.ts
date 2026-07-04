@@ -4,6 +4,8 @@ import { getClientIp } from '@/lib/client-ip'
 import { rateLimitAuthValuation, rateLimitGuestValuation } from '@/lib/rate-limit'
 import { rateLimitResponse } from '@/lib/api-rate-limit-response'
 import { runValuation } from '@/lib/valuation-engine'
+import { tryCreateSupabaseServerClient } from '@/utils/supabase'
+import { checkAndConsumeQuota } from '@/lib/plan-quota'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +15,21 @@ export async function POST(request: NextRequest) {
     if (session?.user?.id) {
       const lim = rateLimitAuthValuation(session.user.id)
       if (!lim.allowed) return rateLimitResponse(lim)
+
+      const supabase = tryCreateSupabaseServerClient()
+      if (supabase) {
+        const quota = await checkAndConsumeQuota(supabase, session.user.id)
+        if (!quota.allowed) {
+          return NextResponse.json(
+            {
+              error: 'Bạn đã dùng hết lượt định giá miễn phí trong tháng. Vui lòng mua gói Doanh nghiệp để tiếp tục.',
+              code: 'QUOTA_EXCEEDED',
+              remaining: 0,
+            },
+            { status: 403 }
+          )
+        }
+      }
     } else {
       const lim = rateLimitGuestValuation(ip)
       if (!lim.allowed) return rateLimitResponse(lim)

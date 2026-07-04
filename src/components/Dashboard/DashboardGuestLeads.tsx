@@ -1,8 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
+import { useWallet } from '@/app/Providers'
+import UpgradeRequired from '@/components/Dashboard/UpgradeRequired'
 
 export type GuestLead = {
   id: string
@@ -31,6 +34,11 @@ export const statusLabels: Record<string, { label: string; className: string }> 
 }
 
 export default function DashboardGuestLeads() {
+  const { data: session } = useSession()
+  const { isPro, planStateLoaded } = useWallet()
+  const isAdmin = session?.user?.role === 'admin'
+  const hasAccess = isAdmin || isPro
+
   const [items, setItems] = useState<GuestLead[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,8 +66,26 @@ export default function DashboardGuestLeads() {
   }, [filterIntent, filterStatus])
 
   useEffect(() => {
+    if (!planStateLoaded || !hasAccess) return
     load()
-  }, [load])
+  }, [load, planStateLoaded, hasAccess])
+
+  if (!planStateLoaded) {
+    return (
+      <div className="flex justify-center py-20">
+        <Icon icon="tabler:loader" className="text-4xl text-primary animate-spin" />
+      </div>
+    )
+  }
+
+  if (!hasAccess) {
+    return (
+      <UpgradeRequired
+        icon="tabler:users"
+        description="Xem thông tin khách đã định giá trên trang chủ (họ tên, SĐT, xe, giá) để liên hệ và chốt deal — nâng cấp gói Doanh nghiệp để mở khóa."
+      />
+    )
+  }
 
   const updateStatus = async (id: string, status: string) => {
     try {

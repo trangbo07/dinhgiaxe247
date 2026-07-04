@@ -7,18 +7,19 @@ export async function POST(request: Request) {
     const name = String(body.name ?? body.companyName ?? "").trim();
     const email = String(body.email ?? "").trim();
     const password = String(body.password ?? "");
-    const accountType = body.accountType === "personal" ? "personal" : "business";
+    // Chỉ còn tài khoản Doanh nghiệp — bỏ qua accountType do client gửi lên (nếu có).
+    const accountType = "business" as const;
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: accountType === "business" ? "Vui lòng nhập tên doanh nghiệp, email và mật khẩu" : "Vui lòng nhập họ tên, email và mật khẩu" },
+        { error: "Vui lòng nhập tên doanh nghiệp, email và mật khẩu" },
         { status: 400 }
       );
     }
 
     if (name.length < 2) {
       return NextResponse.json(
-        { error: accountType === "business" ? "Tên doanh nghiệp không hợp lệ" : "Họ tên không hợp lệ" },
+        { error: "Tên doanh nghiệp không hợp lệ" },
         { status: 400 }
       );
     }
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
         data: {
           account_type: accountType,
           full_name: name,
-          ...(accountType === "business" ? { company_name: name } : {}),
+          company_name: name,
         },
       },
     });

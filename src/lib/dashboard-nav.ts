@@ -114,6 +114,33 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     mobileTab: false,
     adminOnly: true,
   },
+  {
+    id: 'admin-payment-bills',
+    label: 'Bill chuyển khoản',
+    shortLabel: 'Bills',
+    icon: 'tabler:receipt-2',
+    href: '/dashboard/admin/payment-bills',
+    mobileTab: false,
+    adminOnly: true,
+  },
+  {
+    id: 'admin-invoices',
+    label: 'Hoá đơn',
+    shortLabel: 'Hoá đơn',
+    icon: 'tabler:file-invoice',
+    href: '/dashboard/admin/invoices',
+    mobileTab: false,
+    adminOnly: true,
+  },
+  {
+    id: 'admin-revenue',
+    label: 'Báo cáo doanh thu',
+    shortLabel: 'Doanh thu',
+    icon: 'tabler:chart-line',
+    href: '/dashboard/admin/revenue',
+    mobileTab: false,
+    adminOnly: true,
+  },
 ]
 
 export function isDashboardNavActive(pathname: string, href: string) {

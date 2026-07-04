@@ -52,18 +52,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const router = useRouter()
   const pathname = usePathname() ?? ''
   const [menuOpen, setMenuOpen] = useState(false)
-  const { isUltra, ultraUntil } = useWallet()
+  const { isPro } = useWallet()
 
   const isAdmin = session?.user?.role === 'admin'
   const isOnAdminPage = pathname.startsWith('/dashboard/admin')
-  const accountType = session?.user?.accountType ?? 'business'
-  const isPersonal = accountType === 'personal'
 
-  const businessNav = DASHBOARD_NAV.filter((n) => {
-    if (n.adminOnly) return false
-    if (n.businessOnly && isPersonal) return false
-    return true
-  })
+  const businessNav = DASHBOARD_NAV.filter((n) => !n.adminOnly)
   const adminNav = DASHBOARD_NAV.filter((n) => n.adminOnly)
   const mobileTabs = businessNav.filter((n) => n.mobileTab)
 
@@ -186,13 +180,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   ADMIN
                 </span>
               )}
-              {isUltra && !isAdmin && (
+              {isPro && !isAdmin && (
                 <span className="shrink-0 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-1.5 py-0.5 text-[8px] font-black text-white">
-                  ULTRA
+                  DOANH NGHIỆP
                 </span>
               )}
             </div>
-            <p className="truncate text-xs text-slate-500">{session.user?.name ?? (isPersonal ? 'Cá nhân' : 'Doanh nghiệp')}</p>
+            <p className="truncate text-xs text-slate-500">{session.user?.name ?? 'Doanh nghiệp'}</p>
           </div>
 
           {/* Desktop title */}
@@ -208,18 +202,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             ) : (
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-midnight_text">
-                    {isPersonal ? 'Bảng điều khiển Cá nhân' : 'Bảng điều khiển Doanh nghiệp'}
-                  </h1>
-                  {isUltra && (
+                  <h1 className="text-xl font-bold text-midnight_text">Bảng điều khiển Doanh nghiệp</h1>
+                  {isPro && (
                     <span className="rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-2 py-0.5 text-[9px] font-black text-white">
-                      ULTRA
+                      DOANH NGHIỆP
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">
-                  {isPersonal ? 'Định giá · Chat AI · Lịch sử' : 'Định giá · Chat AI · Lead khách · Lưu cloud'}
-                </p>
+                <p className="text-xs text-slate-500">Định giá · Chat AI · Lead khách · Lưu cloud</p>
               </div>
             )}
           </div>

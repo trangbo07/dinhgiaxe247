@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import toast from 'react-hot-toast'
 import type { BusinessReportData } from '@/lib/business-report-stats'
@@ -13,6 +12,8 @@ import {
   StatCard,
   TrendLineChart,
 } from '@/components/Dashboard/ReportCharts'
+import { useWallet } from '@/app/Providers'
+import UpgradeRequired from '@/components/Dashboard/UpgradeRequired'
 
 function fmtMillion(n: number | null) {
   if (n == null) return '—'
@@ -21,13 +22,14 @@ function fmtMillion(n: number | null) {
 
 export default function DashboardReports() {
   const { data: session } = useSession()
-  const router = useRouter()
+  const { isPro, planStateLoaded } = useWallet()
+  const isAdmin = session?.user?.role === 'admin'
+  const hasAccess = isAdmin || isPro
+
   const [report, setReport] = useState<BusinessReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const isPersonal = session?.user?.accountType === 'personal'
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -46,12 +48,26 @@ export default function DashboardReports() {
   }, [])
 
   useEffect(() => {
-    if (isPersonal) {
-      router.replace('/dashboard')
-      return
-    }
+    if (!planStateLoaded || !hasAccess) return
     load()
-  }, [isPersonal, load, router])
+  }, [load, planStateLoaded, hasAccess])
+
+  if (!planStateLoaded) {
+    return (
+      <div className="flex justify-center py-20">
+        <Icon icon="tabler:loader" className="animate-spin text-4xl text-primary" />
+      </div>
+    )
+  }
+
+  if (!hasAccess) {
+    return (
+      <UpgradeRequired
+        icon="tabler:report-analytics"
+        description="Xem báo cáo tổng hợp định giá, lead khách, xu hướng tăng trưởng và xuất PDF — nâng cấp gói Doanh nghiệp để mở khóa."
+      />
+    )
+  }
 
   const handleExportPdf = async () => {
     if (!report) return
@@ -65,8 +81,6 @@ export default function DashboardReports() {
       setExporting(false)
     }
   }
-
-  if (isPersonal) return null
 
   return (
     <div className="space-y-6">

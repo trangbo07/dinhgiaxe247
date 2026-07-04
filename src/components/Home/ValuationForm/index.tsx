@@ -17,7 +17,7 @@ import {
   findModel,
   findVersion,
 } from '@/lib/vehicle-catalog-match'
-import { PERSONAL_PLAN, formatValuationQuota } from '@/lib/plan-limits'
+import { FREE_VALUATIONS_PER_MONTH, formatValuationQuota } from '@/lib/plan-limits'
 
 interface Brand { id: string; name: string; models: Model[] }
 interface Model { id: string; name: string; years: YearEntry[] }
@@ -52,7 +52,6 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   const [showPackages, setShowPackages] = useState(false)
   const [plans, setPlans] = useState<plansData[]>([])
   const [loadingPlans, setLoadingPlans] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<'monthly' | 'yearly'>('yearly')
   const [showImageModal, setShowImageModal] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [showImageDetectConfirm, setShowImageDetectConfirm] = useState(false)
@@ -64,13 +63,12 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
   const {
     isPro,
-    accountType,
     planName,
     maxValuationsPerMonth,
     canUseValuation,
-    consumeValuationUse,
+    consumeLocalValuation,
     remainingFreeValuations,
-    syncFreeUsageForUser,
+    refreshPlanState,
   } = useWallet()
   const { data: session } = useSession()
   const [businessAccessForCurrentResult, setBusinessAccessForCurrentResult] = useState(false)
@@ -147,12 +145,6 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
   useEffect(() => {
     setBrands(vehicleCatalog.brands)
   }, [])
-
-  useEffect(() => {
-    const email = session?.user?.email ?? null
-    const type = session?.user?.accountType ?? null
-    syncFreeUsageForUser(email, type)
-  }, [session, syncFreeUsageForUser])
 
   useEffect(() => {
     // Reset quyền “VIP Doanh nghiệp” theo kết quả định giá hiện tại.
@@ -358,22 +350,6 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
       return false
     }
 
-    if (!isDashboard) {
-      const email = session.user?.email ?? undefined
-      if (email) syncFreeUsageForUser(email, session.user?.accountType ?? null)
-
-      const unlockedForThisRun = isPro || canUseValuation()
-      if (!unlockedForThisRun) {
-        const isPersonal = accountType === 'personal' || session.user?.accountType === 'personal'
-        toast.error(
-          isPersonal
-            ? `Bạn đã dùng hết ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá tháng này. Vui lòng chờ sang tháng mới hoặc nâng cấp gói Doanh nghiệp.`
-            : 'Bạn đã dùng hết lượt dùng thử trong tháng. Vui lòng nâng cấp gói Doanh nghiệp tại mục Bảng giá.'
-        )
-        return false
-      }
-    }
-
     const unlockedForThisRun = isDashboard || isPro || canUseValuation()
 
     const brandName = override?.brandName ?? getBrandName()
@@ -397,10 +373,6 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
 
     setValuationLoading(true)
     try {
-      if (!isDashboard && !isPro) {
-        const email = session.user?.email ?? undefined
-        consumeValuationUse(email ?? null)
-      }
       const res = await fetch('/api/valuation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -414,7 +386,16 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
         }),
       })
       const resData = await res.json()
+
+      if (res.status === 403 && resData.code === 'QUOTA_EXCEEDED') {
+        refreshPlanState()
+        setProModalMessage('Bạn đã dùng hết lượt định giá miễn phí trong tháng. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.')
+        setShowProRequiredModal(true)
+        return false
+      }
+
       if (res.ok) {
+        if (!isPro) consumeLocalValuation()
         setPrice(resData.price ?? resData.priceSuggested ?? null)
         setPriceLow(resData.priceLow ?? null)
         setPriceHigh(resData.priceHigh ?? null)
@@ -479,10 +460,6 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
     }
 
     setShowModal(true)
-  }
-
-  const handleCategoryChange = (category: 'monthly' | 'yearly') => {
-    setSelectedCategory(category)
   }
 
   const sectionClass = isDashboard
@@ -630,17 +607,13 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                   className='bg-white text-primary border-2 border-primary/20 px-8 py-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all'
                   onClick={() => {
                     if (!session) {
-                      setProModalMessage(`Vui lòng đăng nhập để sử dụng định giá hình ảnh AI (${PERSONAL_PLAN.name}: dùng chung ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá/tháng).`)
+                      setProModalMessage(`Vui lòng đăng nhập để sử dụng định giá hình ảnh AI (${FREE_VALUATIONS_PER_MONTH} lượt định giá miễn phí/tháng).`)
                       setShowProRequiredModal(true)
                       return
                     }
 
                     if (!isDashboard && !isPro && !canUseValuation()) {
-                      setProModalMessage(
-                        accountType === 'personal'
-                          ? `Bạn đã dùng hết ${PERSONAL_PLAN.maxValuationsPerMonth} lượt định giá tháng này. Nâng cấp gói Doanh nghiệp để tiếp tục.`
-                          : 'Bạn đã dùng hết lượt dùng thử. Vui lòng nâng cấp gói Doanh nghiệp để tiếp tục.'
-                      )
+                      setProModalMessage('Bạn đã dùng hết lượt định giá miễn phí tháng này. Nâng cấp gói Doanh nghiệp để tiếp tục.')
                       setShowProRequiredModal(true)
                       return
                     }
@@ -662,14 +635,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                 </button>
               </div>
               {!isDashboard && !isPro && (
-                <p className={`text-sm rounded-lg px-4 py-2 mt-3 inline-block border ${
-                  accountType === 'personal'
-                    ? 'text-blue-700 bg-blue-50 border-blue-200'
-                    : 'text-amber-700 bg-amber-50 border-amber-200'
-                }`}>
-                  {accountType === 'personal'
-                    ? `${planName}: ${formatValuationQuota(remainingFreeValuations, maxValuationsPerMonth)}`
-                    : `Dùng thử: còn ${remainingFreeValuations}/${maxValuationsPerMonth} lượt tháng này`}
+                <p className='text-sm rounded-lg px-4 py-2 mt-3 inline-block border text-blue-700 bg-blue-50 border-blue-200'>
+                  {`${planName}: ${formatValuationQuota(remainingFreeValuations, maxValuationsPerMonth)}`}
                 </p>
               )}
             </div>
@@ -953,40 +920,19 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                     Chọn gói phù hợp để đăng ký và tiếp tục xem thêm thông tin chi tiết.
                   </p>
 
-                  <div className='mt-6 relative'>
-                    <div className='flex justify-center'>
-                      <div className='bg-deepSlate flex py-1 px-1 rounded-full'>
-                        <button
-                          className={`text-xl font-medium cursor-pointer ${selectedCategory === 'yearly'
-                            ? 'text-primary bg-white rounded-full py-2 px-4 sm:py-4 sm:px-16'
-                            : 'text-white py-2 px-4 sm:py-4 sm:px-16'
-                            }`}
-                          onClick={() => handleCategoryChange('yearly')}
-                        >
-                          Hàng Năm
-                        </button>
-                        <button
-                          className={`text-xl font-medium cursor-pointer ${selectedCategory === 'monthly'
-                            ? 'text-primary bg-white rounded-full py-2 px-4 sm:py-4 sm:px-16'
-                            : 'text-white py-2 px-4 sm:py-4 sm:px-16'
-                            }`}
-                          onClick={() => handleCategoryChange('monthly')}
-                        >
-                          Hàng Tháng
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-16 mx-5 gap-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-10 mx-5 gap-6'>
                     {loadingPlans ? (
                       <p className='col-span-full text-center text-black/60'>Loading...</p>
                     ) : (
-                      plans
-                        .filter((plan) => plan.category.includes(selectedCategory))
-                        .map((plan, index) => (
+                      plans.map((plan, index) => {
+                        const unit =
+                          plan.heading === 'Gói Tháng' ? '/tháng'
+                          : plan.heading === 'Gói Quý' ? '/quý'
+                          : plan.heading === 'Gói Năm' ? '/năm'
+                          : ''
+                        return (
                           <div
-                            className='pt-10 pb-28 px-10 bg-white rounded-2xl shadow-lg relative hover:bg-primary group overflow-hidden'
+                            className='pt-10 pb-10 px-10 bg-white rounded-2xl shadow-lg relative hover:bg-primary group overflow-hidden'
                             key={index}
                           >
                             <Image
@@ -999,24 +945,14 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                             <h3 className='mb-8 text-midnight_text group-hover:text-white'>
                               {plan.heading}
                             </h3>
-                            <button className='text-xl font-medium text-white w-full bg-primary hover:text-white group-hover:bg-deepSlate group-hover:border-deepSlate border-2 border-primary rounded-full py-4 px-12 mb-8 hover:cursor-pointer'>
+                            <a
+                              href='/dashboard/plans'
+                              className='block text-center text-xl font-medium text-white w-full bg-primary hover:text-white group-hover:bg-deepSlate group-hover:border-deepSlate border-2 border-primary rounded-full py-4 px-12 mb-8 hover:cursor-pointer'>
                               {plan.button}
-                            </button>
-                            <p className='text-4xl sm:text-5xl font-semibold text-midnight_text mb-3 group-hover:text-white'>
-                              {selectedCategory === 'monthly'
-                                ? plan.price.monthly.toLocaleString('vi-VN')
-                                : plan.price.yearly.toLocaleString('vi-VN')}{' '}
-                              đ
-                              <span className='text-lightgrey text-3xl sm:text-4xl'>
-                                {selectedCategory === 'monthly' ? '/tháng' : '/năm'}
-                              </span>
-                            </p>
-                            <p className='text-lg font-normal text-black group-hover:text-white'>
-                              {plan.subscriber}
-                              <span> Người dùng</span>
-                            </p>
-                            <p className='text-lg font-normal text-black/40 mb-6 group-hover:text-white'>
-                              (mỗi người dùng mỗi tháng)
+                            </a>
+                            <p className='text-4xl sm:text-5xl font-semibold text-midnight_text mb-6 group-hover:text-white'>
+                              {plan.price.monthly.toLocaleString('vi-VN')} đ
+                              <span className='text-lightgrey text-3xl sm:text-4xl'>{unit}</span>
                             </p>
                             <div className='mt-6'>
                               {plan.option.map((feature, idx) => (
@@ -1032,7 +968,8 @@ const ValuationForm = ({ variant = 'default', onValuationSaved }: ValuationFormP
                               ))}
                             </div>
                           </div>
-                        ))
+                        )
+                      })
                     )}
                   </div>
                 </>

@@ -5,18 +5,12 @@ import {
   tryCreateSupabaseServerClient,
 } from '@/utils/supabase'
 import { buildBusinessReport } from '@/lib/business-report-stats'
+import { getActiveSubscription } from '@/lib/plan-quota'
 
 export async function GET() {
   const session = await getAuthSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  if (session.user.accountType === 'personal') {
-    return NextResponse.json(
-      { error: 'Báo cáo tổng hợp chỉ dành cho tài khoản doanh nghiệp.' },
-      { status: 403 }
-    )
   }
 
   const configErr = getSupabaseAdminConfigError()
@@ -27,6 +21,19 @@ export async function GET() {
   const supabase = tryCreateSupabaseServerClient()
   if (!supabase) {
     return NextResponse.json({ error: 'Supabase chưa cấu hình' }, { status: 503 })
+  }
+
+  if (session.user.role !== 'admin') {
+    const activeSub = await getActiveSubscription(supabase, session.user.id)
+    if (!activeSub) {
+      return NextResponse.json(
+        {
+          error: 'Báo cáo tổng hợp là tính năng dành cho gói Doanh nghiệp. Vui lòng nâng cấp gói.',
+          code: 'PLAN_REQUIRED',
+        },
+        { status: 403 }
+      )
+    }
   }
 
   try {

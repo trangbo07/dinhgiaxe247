@@ -39,36 +39,16 @@ const FeatureData: featureData[] = [
 
 const PlansData: plansData[] = [
   {
-    heading: 'Gói Cá Nhân',
-    price: {
-      monthly: 0,
-      yearly: 0,
-    },
-    subscriber: 0,
-    button: 'Đăng ký miễn phí',
-    option: [
-      '10 lượt định giá / tháng',
-      '10 lượt hỏi đáp AI mỗi lần định giá',
-      'Checklist mua xe ',
-      'Báo cáo định giá xe ',
-      'Lịch sử định giá xe',
-      'Định giá bằng hình ảnh AI',
-      'So sánh 2 dòng xe',
-      'Dịch vụ chăm sóc khách hàng 24/7',
-    ],
-    category: ['personal'],
-    imgSrc: '/images/pricing/starone.svg',
-  },
-  {
     heading: 'Gói Tháng',
+    planCode: 'monthly',
     price: {
-      monthly: 129000,
-      yearly: 129000,
+      monthly: 199000,
+      yearly: 199000,
     },
     subscriber: 1,
     button: 'Mua Ngay',
     option: [
-      'Không giới hạn lượt định giá',
+      '4 lượt định giá miễn phí/tháng, không giới hạn khi mua gói',
       'Không giới hạn thời gian chat AI (giải đáp, tips định giá)',
       'Lưu lại lịch sử các xe đã định giá',
       'Gợi ý giá thu mua hợp lý theo thị trường',
@@ -80,9 +60,10 @@ const PlansData: plansData[] = [
   },
   {
     heading: 'Gói Quý',
+    planCode: 'quarterly',
     price: {
-      monthly: 350000,
-      yearly: 350000,
+      monthly: 539000,
+      yearly: 539000,
     },
     subscriber: 1,
     button: 'Mua Ngay',
@@ -99,9 +80,10 @@ const PlansData: plansData[] = [
   },
   {
     heading: 'Gói Năm',
+    planCode: 'yearly',
     price: {
-      monthly: 1499000,
-      yearly: 1499000,
+      monthly: 1399000,
+      yearly: 1399000,
     },
     subscriber: 1,
     button: 'Mua Ngay',
@@ -112,26 +94,6 @@ const PlansData: plansData[] = [
       'Gợi ý giá thu mua hợp lý theo thị trường',
       'Báo cáo tổng hợp & xuất PDF chi tiết',
       'Biểu đồ tăng trưởng lead & định giá',
-    ],
-    category: ['business'],
-    imgSrc: '/images/pricing/starthree.svg',
-  },
-  {
-    heading: 'Ultra 1 Tháng',
-    price: {
-      monthly: 0,
-      yearly: 0,
-    },
-    subscriber: 0,
-    button: 'Dùng thử miễn phí',
-    isUltraTrial: true,
-    option: [
-      'Đầy đủ tính năng Doanh nghiệp trong 1 tháng',
-      'Không giới hạn lượt định giá',
-      'Không giới hạn hỏi đáp AI',
-      'Quản lý khách từ website (leads)',
-      'Báo cáo định giá chuyên sâu',
-      'Không cần thẻ ngân hàng',
     ],
     category: ['business'],
     imgSrc: '/images/pricing/starthree.svg',

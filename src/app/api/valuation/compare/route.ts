@@ -10,6 +10,8 @@ import {
 } from '@/lib/rate-limit'
 import { rateLimitResponse } from '@/lib/api-rate-limit-response'
 import { runValuation } from '@/lib/valuation-engine'
+import { tryCreateSupabaseServerClient } from '@/utils/supabase'
+import { checkAndConsumeQuota } from '@/lib/plan-quota'
 import { callGemini, isGeminiConfigured } from '@/lib/gemini-client'
 import {
   buildCarComparePrompt,
@@ -84,6 +86,21 @@ export async function POST(request: NextRequest) {
     if (session?.user?.id) {
       const lim = rateLimitAuthCompare(session.user.id)
       if (!lim.allowed) return rateLimitResponse(lim)
+
+      const supabase = tryCreateSupabaseServerClient()
+      if (supabase) {
+        const quota = await checkAndConsumeQuota(supabase, session.user.id)
+        if (!quota.allowed) {
+          return NextResponse.json(
+            {
+              error: 'Bạn đã dùng hết lượt định giá miễn phí trong tháng. Vui lòng mua gói Doanh nghiệp để tiếp tục.',
+              code: 'QUOTA_EXCEEDED',
+              remaining: 0,
+            },
+            { status: 403 }
+          )
+        }
+      }
     } else {
       const lim = rateLimitGuestCompare(ip)
       if (!lim.allowed) return rateLimitResponse(lim)

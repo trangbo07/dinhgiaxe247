@@ -7,6 +7,7 @@ import {
   getSupabaseAdminConfigError,
   tryCreateSupabaseServerClient,
 } from "@/utils/supabase";
+import { getActiveSubscription } from "@/lib/plan-quota";
 
 export async function GET(request: Request) {
   const session = await getAuthSession();
@@ -22,6 +23,20 @@ export async function GET(request: Request) {
   const supabase = tryCreateSupabaseServerClient();
   if (!supabase) {
     return NextResponse.json({ error: "Supabase chưa cấu hình", items: [] }, { status: 503 });
+  }
+
+  if (session.user.role !== "admin") {
+    const activeSub = await getActiveSubscription(supabase, session.user.id);
+    if (!activeSub) {
+      return NextResponse.json(
+        {
+          error: "Xem khách từ website là tính năng dành cho gói Doanh nghiệp. Vui lòng nâng cấp gói.",
+          code: "PLAN_REQUIRED",
+          items: [],
+        },
+        { status: 403 }
+      );
+    }
   }
 
   const { searchParams } = new URL(request.url);
