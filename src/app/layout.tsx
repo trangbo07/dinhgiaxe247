@@ -6,6 +6,7 @@ import LayoutChrome from '@/components/Layout/LayoutChrome'
 import ScrollToTop from '@/components/ScrollToTop'
 import Aoscompo from '@/utils/aos'
 import { Providers } from './Providers'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   title: 'ValuCar - Định Giá Xe Ô Tô...',
@@ -51,6 +52,7 @@ export default function RootLayout({
             <ScrollToTop />
           </Aoscompo>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
