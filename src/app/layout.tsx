@@ -1,5 +1,6 @@
 import { Be_Vietnam_Pro } from 'next/font/google'
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import LayoutChrome from '@/components/Layout/LayoutChrome'
 import ScrollToTop from '@/components/ScrollToTop'
@@ -36,6 +37,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('valucar_wc_theme');if(t==='1')document.documentElement.classList.add('worldcup-theme');}catch(e){}})();`,
           }}
+        />
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="kXSaUIrNIb+RL9gObOTDEw"
+          strategy="afterInteractive"
         />
       </head>
       <body className={`${font.className}`}>
