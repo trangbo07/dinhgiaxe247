@@ -1,6 +1,7 @@
 import { Be_Vietnam_Pro } from 'next/font/google'
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import LayoutChrome from '@/components/Layout/LayoutChrome'
 import ScrollToTop from '@/components/ScrollToTop'
@@ -51,6 +52,7 @@ export default function RootLayout({
             <ScrollToTop />
           </Aoscompo>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
