@@ -132,7 +132,7 @@ const Header: React.FC = () => {
           <div>
             <Logo />
           </div>
-          <nav className='hidden lg:flex grow items-center gap-8 justify-start md:ml-20'>
+          <nav className='hidden lg:flex grow items-center gap-4 xl:gap-8 justify-start md:ml-8 xl:ml-20 mr-6 xl:mr-10'>
             {headerData.map((item, index) => (
               <HeaderLink key={index} item={item} />
             ))}
@@ -156,13 +156,13 @@ const Header: React.FC = () => {
               <>
                 <button
                   type="button"
-                  className='hidden lg:block bg-white text-primary hover:bg-gray-50 px-6 py-2.5 rounded-full font-semibold text-base transition-all shadow-sm'
+                  className='hidden lg:block bg-white text-primary hover:bg-gray-50 px-4 xl:px-6 py-2.5 rounded-full font-semibold text-sm xl:text-base whitespace-nowrap transition-all shadow-sm'
                   onClick={openSignInModal}>
                   Đăng Nhập
                 </button>
                 <button
                   type="button"
-                  className='hidden lg:block bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 px-6 py-2.5 rounded-full font-semibold text-base shadow-lg shadow-primary/30 transition-all'
+                  className='hidden lg:block bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 px-4 xl:px-6 py-2.5 rounded-full font-semibold text-sm xl:text-base whitespace-nowrap shadow-lg shadow-primary/30 transition-all'
                   onClick={() => openSignUpModal()}>
                   Đăng Ký DN
                 </button>

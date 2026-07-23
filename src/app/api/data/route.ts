@@ -14,6 +14,7 @@ const HeaderData: headerItem[] = [
   { label: 'Tính năng', href: '/#features' },
   { label: 'Bảng giá', href: '/#pricing' },
   { label: 'Liên hệ', href: '/#contact' },
+  { label: 'Adocar', href: '/adocar' },
 ]
 
 const FeatureData: featureData[] = [
@@ -48,7 +49,7 @@ const PlansData: plansData[] = [
     subscriber: 1,
     button: 'Mua Ngay',
     option: [
-      '4 lượt định giá miễn phí/tháng, không giới hạn khi mua gói',
+      'Không giới hạn khi mua gói',
       'Không giới hạn thời gian chat AI (giải đáp, tips định giá)',
       'Lưu lại lịch sử các xe đã định giá',
       'Gợi ý giá thu mua hợp lý theo thị trường',

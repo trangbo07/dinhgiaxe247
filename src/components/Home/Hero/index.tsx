@@ -6,7 +6,7 @@ import ContactChannels from '@/components/Contact/ContactChannels'
 const stats = [
   { value: '30 ngày', label: 'Dữ liệu thị trường', icon: 'tabler:chart-line' },
   { value: '2 nguồn', label: 'Chợ Tốt & Bonbanh', icon: 'tabler:database' },
-  { value: 'Miễn phí', label: 'Định giá khách', icon: 'tabler:gift' },
+  { value: 'Miễn phí', label: 'Định giá xe', icon: 'tabler:gift' },
 ]
 
 const Hero = () => {
